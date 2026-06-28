@@ -55,6 +55,14 @@ export const hostedZoneService = {
   async deleteHostedZone(zoneId: number): Promise<void> {
     await client.delete(`/hosted-zones/${zoneId}`);
   },
+
+  /**
+   * Fetches metadata for a single hosted zone.
+   */
+  async getHostedZone(zoneId: number): Promise<HostedZone> {
+    const response = await client.get<HostedZone>(`/hosted-zones/${zoneId}`);
+    return response.data;
+  },
 };
 
 export default hostedZoneService;

@@ -1,17 +1,20 @@
 "use client";
 
-import Link from "next/link";
-import { HostedZone } from "../../types/hostedZone";
+import { DNSRecord } from "../../types/dnsRecord";
 import { TableRow, TableCell } from "../ui/Table";
 
-interface HostedZoneRowProps {
-  zone: HostedZone;
+interface DNSRecordRowProps {
+  record: DNSRecord;
   selected: boolean;
   onSelect: () => void;
 }
 
-export default function HostedZoneRow({ zone, selected, onSelect }: HostedZoneRowProps) {
-  // Helper to format ISO dates to readable 'YYYY-MM-DD HH:mm:ss' format
+export default function DNSRecordRow({
+  record,
+  selected,
+  onSelect,
+}: DNSRecordRowProps) {
+  // Helper to format ISO dates to readable 'YYYY-MM-DD HH:mm:ss'
   const formatDate = (dateStr: string) => {
     try {
       const date = new Date(dateStr);
@@ -23,7 +26,7 @@ export default function HostedZoneRow({ zone, selected, onSelect }: HostedZoneRo
   };
 
   return (
-    <TableRow 
+    <TableRow
       className={`cursor-pointer ${selected ? "bg-zinc-50" : ""}`}
       onClick={onSelect}
     >
@@ -31,41 +34,46 @@ export default function HostedZoneRow({ zone, selected, onSelect }: HostedZoneRo
       <TableCell className="w-10 text-center" onClick={(e) => e.stopPropagation()}>
         <input
           type="radio"
-          name="selectedHostedZone"
+          name="selectedDNSRecord"
           checked={selected}
           onChange={onSelect}
           className="accent-[#e47911] h-3.5 w-3.5 cursor-pointer"
-          aria-label={`Select ${zone.domain_name}`}
+          aria-label={`Select record ${record.record_name}`}
         />
       </TableCell>
 
-      {/* Domain Name (Navigates to detail page) */}
-      <TableCell className="font-bold text-[#0066cc] hover:text-[#004b93] hover:underline" onClick={(e) => e.stopPropagation()}>
-        <Link href={`/hosted-zones/${zone.id}`}>
-          {zone.domain_name}
-        </Link>
+      {/* Record Name */}
+      <TableCell className="font-semibold text-zinc-900 font-mono">
+        {record.record_name}
       </TableCell>
 
-      {/* Description */}
-      <TableCell className="text-zinc-600 truncate max-w-xs">
-        {zone.description || <span className="text-zinc-400">-</span>}
-      </TableCell>
-
-      {/* Type */}
+      {/* Record Type Badge */}
       <TableCell>
         <span className="inline-block px-1.5 py-0.5 rounded-sm border border-zinc-200 bg-zinc-100 text-[10px] font-bold text-zinc-600 uppercase tracking-wide">
-          Public
+          {record.record_type}
         </span>
       </TableCell>
 
-      {/* Record Count */}
-      <TableCell className="text-zinc-700">
-        {zone.record_count !== undefined ? zone.record_count : "—"}
+      {/* Value */}
+      <TableCell className="text-zinc-600 truncate max-w-sm font-mono text-[11px]">
+        {record.value}
+      </TableCell>
+
+      {/* TTL */}
+      <TableCell className="text-zinc-600">
+        {record.ttl}
+      </TableCell>
+
+      {/* Priority (MX only, show em-dash for non-priority types) */}
+      <TableCell className="text-zinc-600 font-medium">
+        {record.record_type === "MX" && record.priority !== null
+          ? record.priority
+          : "—"}
       </TableCell>
 
       {/* Created Date */}
       <TableCell className="text-zinc-500 whitespace-nowrap">
-        {formatDate(zone.created_at)}
+        {formatDate(record.created_at)}
       </TableCell>
     </TableRow>
   );

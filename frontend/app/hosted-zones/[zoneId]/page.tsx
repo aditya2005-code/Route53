@@ -1,3 +1,5 @@
+import HostedZoneDetailClient from "./HostedZoneDetailClient";
+
 interface HostedZoneDetailPageProps {
   params: Promise<{
     zoneId: string;
@@ -6,9 +8,6 @@ interface HostedZoneDetailPageProps {
 
 export default async function HostedZoneDetailPage({ params }: HostedZoneDetailPageProps) {
   const { zoneId } = await params;
-  return (
-    <div>
-      <h1>Hosted Zone Details: {zoneId}</h1>
-    </div>
-  );
+  const parsedZoneId = parseInt(zoneId, 10);
+  return <HostedZoneDetailClient zoneId={parsedZoneId} />;
 }
