@@ -4,9 +4,15 @@ import type { NextRequest } from "next/server";
 // Define the token key string directly to avoid potential browser/server module resolve issues
 const TOKEN_KEY = "route53_jwt_token";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const token = request.cookies.get(TOKEN_KEY)?.value;
   const { pathname } = request.nextUrl;
+
+  // Redirect root path requests based on authentication token
+  if (pathname === "/") {
+    const destination = token ? "/hosted-zones" : "/login";
+    return NextResponse.redirect(new URL(destination, request.url));
+  }
 
   const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/auth/login");
   const isProtectedPage = pathname.startsWith("/dashboard") || pathname.startsWith("/hosted-zones");
@@ -28,6 +34,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
     "/dashboard/:path*",
     "/hosted-zones/:path*",
     "/login",
