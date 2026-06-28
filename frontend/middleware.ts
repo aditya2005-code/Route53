@@ -1,10 +1,35 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+// Define the token key string directly to avoid potential browser/server module resolve issues
+const TOKEN_KEY = "route53_jwt_token";
+
 export function middleware(request: NextRequest) {
+  const token = request.cookies.get(TOKEN_KEY)?.value;
+  const { pathname } = request.nextUrl;
+
+  const isAuthPage = pathname.startsWith("/login");
+  const isProtectedPage = pathname.startsWith("/dashboard") || pathname.startsWith("/hosted-zones");
+
+  // 1. If unauthenticated and trying to access protected route -> redirect to /login
+  if (!token && isProtectedPage) {
+    const loginUrl = new URL("/login", request.url);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // 2. If authenticated and trying to access login page -> redirect to /dashboard
+  if (token && isAuthPage) {
+    const dashboardUrl = new URL("/dashboard", request.url);
+    return NextResponse.redirect(dashboardUrl);
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/hosted-zones/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/hosted-zones/:path*",
+    "/login",
+  ],
 };
