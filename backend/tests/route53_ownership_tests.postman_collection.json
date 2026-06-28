@@ -1,0 +1,602 @@
+{
+	"info": {
+		"_postman_id": "9f58527e-f424-4d20-955c-8d658bf444ed",
+		"name": "AWS Route53 Clone - Phase 16 Authorization & Resource Ownership Tests",
+		"description": "Postman Collection for verifying resource ownership, cross-user boundary controls, and security in the AWS Route53 Clone API.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Auth - Register User A",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"User A\",\n  \"email\": \"usera@example.com\",\n  \"password\": \"password123\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/auth/register",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2. Auth - Login User A",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"pm.environment.set(\"user_a_token\", jsonData.access_token);",
+							"pm.test(\"Login successful\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "usera@example.com",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "password123",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/auth/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3. Hosted Zone - User A Create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"pm.environment.set(\"user_a_zone_id\", jsonData.id);",
+							"pm.test(\"Hosted zone created for User A\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{user_a_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"domain_name\": \"usera-domain.com\",\n  \"description\": \"User A Domain\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/hosted-zones/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"hosted-zones",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4. DNS Record - User A Create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"pm.environment.set(\"user_a_record_id\", jsonData.id);",
+							"pm.test(\"DNS Record created for User A\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{user_a_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"record_name\": \"www\",\n  \"record_type\": \"A\",\n  \"value\": \"192.0.2.1\",\n  \"ttl\": 300\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/hosted-zones/{{user_a_zone_id}}/records",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"hosted-zones",
+						"{{user_a_zone_id}}",
+						"records"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5. Auth - Register User B",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"User B\",\n  \"email\": \"userb@example.com\",\n  \"password\": \"password123\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/auth/register",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "6. Auth - Login User B",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"pm.environment.set(\"user_b_token\", jsonData.access_token);",
+							"pm.test(\"Login successful\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "userb@example.com",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "password123",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/auth/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "7. Security - User B Access User A Hosted Zone",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"User B is blocked from viewing User A's Hosted Zone (404)\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{user_b_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/hosted-zones/{{user_a_zone_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"hosted-zones",
+						"{{user_a_zone_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "8. Security - User B Update User A Hosted Zone",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"User B is blocked from updating User A's Hosted Zone (404)\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{user_b_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"domain_name\": \"usera-domain-hacked.com\",\n  \"description\": \"Hacked\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/hosted-zones/{{user_a_zone_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"hosted-zones",
+						"{{user_a_zone_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "9. Security - User B Delete User A Hosted Zone",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"User B is blocked from deleting User A's Hosted Zone (404)\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{user_b_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/hosted-zones/{{user_a_zone_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"hosted-zones",
+						"{{user_a_zone_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "10. Security - User B Create Record in User A Zone",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"User B is blocked from creating records in User A's Zone (404)\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{user_b_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"record_name\": \"hacked\",\n  \"record_type\": \"A\",\n  \"value\": \"192.0.2.100\",\n  \"ttl\": 300\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/hosted-zones/{{user_a_zone_id}}/records",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"hosted-zones",
+						"{{user_a_zone_id}}",
+						"records"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "11. Security - User B Access User A DNS Record",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"User B is blocked from viewing User A's DNS Record (404)\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{user_b_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/hosted-zones/{{user_a_zone_id}}/records/{{user_a_record_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"hosted-zones",
+						"{{user_a_zone_id}}",
+						"records",
+						"{{user_a_record_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "12. User B - Create Own Hosted Zone",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"pm.environment.set(\"user_b_zone_id\", jsonData.id);",
+							"pm.test(\"User B can create their own Hosted Zone\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{user_b_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"domain_name\": \"userb-domain.com\",\n  \"description\": \"User B Zone\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/hosted-zones/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"hosted-zones",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "13. User B - Manage Own DNS Record",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"pm.test(\"User B can create record in their own zone\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{user_b_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"record_name\": \"www\",\n  \"record_type\": \"A\",\n  \"value\": \"192.0.2.200\",\n  \"ttl\": 300\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/hosted-zones/{{user_b_zone_id}}/records",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"hosted-zones",
+						"{{user_b_zone_id}}",
+						"records"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		}
+	]
+}
