@@ -1,7 +1,12 @@
-# Main FastAPI application entry point
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.api.api import api_router
+from app.core.config import settings
+from app.db.database import Base, engine
+
+# Import all models BEFORE create_all()
+from app.models import user, hosted_zone, dns_record
 
 app = FastAPI(
     title="AWS Route 53 Clone API",
@@ -9,11 +14,18 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Configure CORS origins
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+
+@app.on_event("startup")
+def on_startup():
+    """
+    Create database tables if they don't already exist.
+    Safe to run multiple times.
+    """
+    Base.metadata.create_all(bind=engine)
+
+
+# Configure CORS
+origins = [origin.strip() for origin in settings.ALLOWED_ORIGINS.split(",")]
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,9 +35,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Register API routes
 app.include_router(api_router)
 
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to Route 53 Clone API"}
+    return {
+        "message": "Welcome to Route 53 Clone API"
+    }
+
+
+@app.get("/health")
+def health():
+    return {
+        "status": "healthy"
+    }
