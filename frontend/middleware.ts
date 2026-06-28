@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get(TOKEN_KEY)?.value;
   const { pathname } = request.nextUrl;
 
-  const isAuthPage = pathname.startsWith("/login");
+  const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/auth/login");
   const isProtectedPage = pathname.startsWith("/dashboard") || pathname.startsWith("/hosted-zones");
 
   // 1. If unauthenticated and trying to access protected route -> redirect to /login
@@ -17,10 +17,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // 2. If authenticated and trying to access login page -> redirect to /dashboard
+  // 2. If authenticated and trying to access login page -> redirect to /hosted-zones
   if (token && isAuthPage) {
-    const dashboardUrl = new URL("/dashboard", request.url);
-    return NextResponse.redirect(dashboardUrl);
+    const hostedZonesUrl = new URL("/hosted-zones", request.url);
+    return NextResponse.redirect(hostedZonesUrl);
   }
 
   return NextResponse.next();
@@ -31,5 +31,6 @@ export const config = {
     "/dashboard/:path*",
     "/hosted-zones/:path*",
     "/login",
+    "/auth/login",
   ],
 };
