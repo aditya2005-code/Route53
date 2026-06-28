@@ -1,14 +1,19 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import useHostedZones from "../../hooks/useHostedZones";
 import SearchBar from "../../components/hosted-zones/SearchBar";
 import HostedZonesTable from "../../components/hosted-zones/HostedZonesTable";
 import Pagination from "../../components/hosted-zones/Pagination";
 import EmptyState from "../../components/hosted-zones/EmptyState";
 import LoadingSkeleton from "../../components/hosted-zones/LoadingSkeleton";
-import { ShieldAlert, RefreshCw, Plus } from "lucide-react";
+import CreateHostedZoneModal from "../../components/hosted-zones/CreateHostedZoneModal";
+import EditHostedZoneModal from "../../components/hosted-zones/EditHostedZoneModal";
+import DeleteHostedZoneModal from "../../components/hosted-zones/DeleteHostedZoneModal";
+import { ShieldAlert, RefreshCw, Plus, Edit2, Trash2 } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
+import { HostedZone } from "../../types/hostedZone";
 
 export default function HostedZonesPage() {
   const {
@@ -23,6 +28,24 @@ export default function HostedZonesPage() {
     setPage,
     refetch,
   } = useHostedZones();
+
+  // Selection state (Radio model)
+  const [selectedZone, setSelectedZone] = useState<HostedZone | null>(null);
+
+  // Modal display states
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  // Clear selected row context whenever search queries or page indices modify
+  useEffect(() => {
+    setSelectedZone(null);
+  }, [search, page]);
+
+  const handleCrudSuccess = () => {
+    setSelectedZone(null);
+    refetch();
+  };
 
   return (
     <div className="space-y-6 select-none">
@@ -39,7 +62,7 @@ export default function HostedZonesPage() {
 
         {/* Action Controls using Button primitives */}
         <div className="flex items-center gap-2">
-          {/* Refresh Button */}
+          {/* Refresh List */}
           <Button
             variant="secondary"
             size="sm"
@@ -50,12 +73,37 @@ export default function HostedZonesPage() {
             <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} />
           </Button>
 
-          {/* Create Hosted Zone Button (Disabled in this phase as requested) */}
+          {/* Delete Button (Active only when a row is selected) */}
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={!selectedZone || isLoading}
+            onClick={() => setIsDeleteOpen(true)}
+            className="flex items-center gap-1 border-red-200 text-red-600 hover:bg-red-50/50 disabled:text-zinc-400 disabled:border-[#aab7b7] disabled:hover:bg-white"
+            title={selectedZone ? `Delete ${selectedZone.domain_name}` : "Select a hosted zone to delete"}
+          >
+            <Trash2 size={12} />
+            <span>Delete</span>
+          </Button>
+
+          {/* Edit Button (Active only when a row is selected) */}
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={!selectedZone || isLoading}
+            onClick={() => setIsEditOpen(true)}
+            className="flex items-center gap-1"
+            title={selectedZone ? `Edit ${selectedZone.domain_name}` : "Select a hosted zone to edit"}
+          >
+            <Edit2 size={12} />
+            <span>Edit</span>
+          </Button>
+
+          {/* Create Hosted Zone Button (Fully functional modal trigger) */}
           <Button
             variant="primary"
             size="sm"
-            disabled
-            title="Create Hosted Zone is disabled in this phase"
+            onClick={() => setIsCreateOpen(true)}
             className="flex items-center gap-1.5"
           >
             <Plus size={14} />
@@ -102,7 +150,11 @@ export default function HostedZonesPage() {
             </div>
           ) : (
             <>
-              <HostedZonesTable zones={zones} />
+              <HostedZonesTable 
+                zones={zones} 
+                selectedZoneId={selectedZone?.id ?? null}
+                onSelectZone={setSelectedZone}
+              />
               
               {/* Card Footer Navigation bar */}
               {pages > 1 && (
@@ -116,6 +168,27 @@ export default function HostedZonesPage() {
           )}
         </Card>
       )}
+
+      {/* 4. CRUD Modals overlays */}
+      <CreateHostedZoneModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        onSuccess={handleCrudSuccess}
+      />
+
+      <EditHostedZoneModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        onSuccess={handleCrudSuccess}
+        zone={selectedZone}
+      />
+
+      <DeleteHostedZoneModal
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        onSuccess={handleCrudSuccess}
+        zone={selectedZone}
+      />
     </div>
   );
 }
