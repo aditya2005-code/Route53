@@ -9,14 +9,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (isLoading) {
     return (
-      <div className="flex h-screen w-screen flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-950">
-        <div className="relative flex h-16 w-16 items-center justify-center">
-          <div className="absolute h-12 w-12 animate-ping rounded-full bg-indigo-500/10" />
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-indigo-500/20 border-t-indigo-600" />
+      <div className="flex h-screen w-screen flex-col items-center justify-center bg-[#eaeded] text-[#111111] font-sans">
+        <div className="flex flex-col items-center space-y-4">
+          {/* Flat, standard border-spinner */}
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-300 border-t-[#0066cc]" />
+          <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
+            Loading AWS Console...
+          </p>
         </div>
-        <p className="mt-4 text-xs font-bold text-zinc-400 uppercase tracking-widest animate-pulse">
-          Loading Console Configuration...
-        </p>
       </div>
     );
   }
@@ -27,18 +27,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50/50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
-      {/* 1. Sidebar Navigation */}
-      <Sidebar />
+    <div className="min-h-screen bg-[#eaeded] text-[#111111] font-sans flex flex-col pt-16">
+      {/* 1. Fixed Top Header */}
+      <Header />
 
-      {/* 2. Page Content Column */}
-      <div className="pl-64 flex flex-col min-h-screen">
-        {/* Top Navbar */}
-        <Header />
-        
-        {/* Main Content Area Container */}
-        <main className="flex-1 p-8 max-w-7xl w-full mx-auto">
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+      {/* 2. Main Page Layout (Sidebar + Content Container) */}
+      <div className="flex-1 flex">
+        {/* Sidebar Nav */}
+        <Sidebar />
+
+        {/* Content Container (pl-56 offsets sidebar width) */}
+        <main className="flex-1 pl-56 p-6 min-w-0">
+          <div className="max-w-7xl mx-auto space-y-6">
             {children}
           </div>
         </main>
