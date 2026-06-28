@@ -4,16 +4,15 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Mail, Lock, ShieldAlert, ArrowRight, Loader2 } from "lucide-react";
+import { ShieldAlert, Info } from "lucide-react";
 import useAuth from "../../../hooks/useAuth";
 
-// 1. Declare validation schema using Zod
+// Zod schema for validation
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-// Infer the form inputs type from the Zod schema
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
@@ -21,7 +20,6 @@ export default function LoginPage() {
   const [apiError, setApiError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  // 2. Configure react-hook-form with the zod resolver
   const {
     register,
     handleSubmit,
@@ -34,16 +32,14 @@ export default function LoginPage() {
     },
   });
 
-  // 3. Handle submit action calling context login
   const onSubmit = async (data: LoginFormValues) => {
     setApiError(null);
     setIsSubmitting(true);
     try {
       await login(data.email, data.password);
     } catch (err: any) {
-      // Parse backend API message
       const errorMsg =
-        err.response?.data?.detail || "Invalid credentials. Please try again.";
+        err.response?.data?.detail || "Authentication failed. Please check your credentials.";
       setApiError(errorMsg);
     } finally {
       setIsSubmitting(false);
@@ -51,105 +47,173 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-950 px-4 py-12 sm:px-6 lg:px-8 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.26),rgba(255,255,255,0))]">
-      <div className="w-full max-w-md space-y-8 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-10 backdrop-blur-xl shadow-2xl">
+    <div className="min-h-screen bg-[#eaeded] text-[#111111] font-sans flex flex-col items-center justify-between py-12 px-4">
+      {/* Centered Container */}
+      <div className="w-full max-w-[390px] flex flex-col space-y-6">
         
-        {/* Brand Header */}
+        {/* Flat Logo Branding */}
         <div className="flex flex-col items-center text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-indigo-600 text-white font-bold text-xl shadow-lg shadow-indigo-500/30">
-            53
+          <div className="flex items-center gap-1">
+            <svg
+              className="h-8 w-12 text-[#111111]"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
+            </svg>
+            <span className="text-xl font-bold tracking-tight text-zinc-900">
+              aws
+            </span>
           </div>
-          <h2 className="mt-6 text-2xl font-bold tracking-tight text-white">
+          <h1 className="mt-4 text-xl font-semibold text-zinc-900">
             Sign in to AWS Console
-          </h2>
-          <p className="mt-2 text-sm text-zinc-400">
-            AWS Route 53 Clone Account Management
-          </p>
+          </h1>
         </div>
 
-        {/* Form Element */}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          {/* Global Alert for API Errors */}
-          {apiError && (
-            <div className="flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-xs font-semibold text-red-400">
-              <ShieldAlert size={16} className="shrink-0" />
-              <span>{apiError}</span>
-            </div>
-          )}
+        {/* Flat White Container Card */}
+        <div className="bg-white border border-[#d5dbdb] p-8 shadow-sm rounded-sm">
+          <h2 className="text-lg font-normal mb-6 text-[#111111]">
+            Sign in
+          </h2>
 
-          <div className="space-y-4">
-            {/* Email Field */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
-                Email Address
-              </label>
-              <div className="relative mt-1">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-500">
-                  <Mail size={16} />
-                </span>
-                <input
-                  {...register("email")}
-                  type="email"
-                  placeholder="admin@route53.aws"
-                  className={`h-11 w-full rounded-xl border bg-zinc-800/40 pl-10 pr-4 text-sm text-zinc-200 transition-all placeholder:text-zinc-500 focus:outline-none focus:ring-1 ${
-                    errors.email
-                      ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                      : "border-zinc-800 focus:border-indigo-500 focus:ring-indigo-500"
-                  }`}
-                />
+          {/* Form Action */}
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
+            
+            {/* Global API Error Alert (AWS Styled) */}
+            {apiError && (
+              <div 
+                className="flex items-start gap-3 border-l-4 border-[#d13212] bg-[#fdf3f2] p-4 text-sm text-[#111111] rounded-sm"
+                role="alert"
+                aria-live="assertive"
+              >
+                <ShieldAlert className="text-[#d13212] shrink-0 mt-0.5" size={16} />
+                <div className="flex flex-col space-y-1">
+                  <span className="font-bold text-[#d13212]">Authentication Alert</span>
+                  <span className="text-xs">{apiError}</span>
+                </div>
               </div>
-              {errors.email && (
-                <span className="mt-1 block text-xs font-medium text-red-400">
-                  {errors.email.message}
-                </span>
-              )}
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
-                Password
-              </label>
-              <div className="relative mt-1">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-500">
-                  <Lock size={16} />
-                </span>
-                <input
-                  {...register("password")}
-                  type="password"
-                  placeholder="••••••••"
-                  className={`h-11 w-full rounded-xl border bg-zinc-800/40 pl-10 pr-4 text-sm text-zinc-200 transition-all placeholder:text-zinc-500 focus:outline-none focus:ring-1 ${
-                    errors.password
-                      ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                      : "border-zinc-800 focus:border-indigo-500 focus:ring-indigo-500"
-                  }`}
-                />
-              </div>
-              {errors.password && (
-                <span className="mt-1 block text-xs font-medium text-red-400">
-                  {errors.password.message}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="group relative flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white shadow-md shadow-indigo-600/10 transition-all duration-300 hover:bg-indigo-500 disabled:opacity-50"
-          >
-            {isSubmitting ? (
-              <Loader2 className="h-4 w-4 animate-spin text-white" />
-            ) : (
-              <>
-                <span>Sign In</span>
-                <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-              </>
             )}
-          </button>
-        </form>
+
+            {/* Simulated AWS User Type Selector (Static Flat Display) */}
+            <div className="space-y-2 border-b border-[#eaeded] pb-4">
+              <label className="flex items-center gap-2 text-sm font-bold text-zinc-700 cursor-pointer">
+                <input
+                  type="radio"
+                  name="userType"
+                  defaultChecked
+                  className="accent-[#e47911] h-4 w-4"
+                  disabled
+                />
+                <span>Root user</span>
+              </label>
+              <p className="pl-6 text-xs text-zinc-500">
+                Manage hosted zones and settings
+              </p>
+            </div>
+
+            {/* Email Input Field */}
+            <div className="space-y-1">
+              <label 
+                htmlFor="email" 
+                className="block text-sm font-bold text-[#111111]"
+              >
+                Root user email address
+              </label>
+              <input
+                {...register("email")}
+                id="email"
+                type="email"
+                placeholder="admin@route53.aws"
+                aria-invalid={errors.email ? "true" : "false"}
+                aria-describedby={errors.email ? "email-error" : undefined}
+                className={`h-9 w-full rounded-[3px] border px-3 text-sm bg-white text-[#111111] transition-all outline-none focus:ring-1 ${
+                  errors.email
+                    ? "border-[#d13212] focus:border-[#d13212] focus:ring-[#d13212]"
+                    : "border-[#aab7b7] focus:border-[#e47911] focus:ring-[#e47911]"
+                }`}
+                disabled={isSubmitting}
+              />
+              {errors.email && (
+                <span 
+                  id="email-error" 
+                  className="mt-1 block text-xs font-semibold text-[#d13212] flex items-center gap-1"
+                  role="alert"
+                >
+                  <ShieldAlert size={12} /> {errors.email.message}
+                </span>
+              )}
+            </div>
+
+            {/* Password Input Field */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <label 
+                  htmlFor="password" 
+                  className="block text-sm font-bold text-[#111111]"
+                >
+                  Password
+                </label>
+                <a 
+                  href="#" 
+                  className="text-xs text-[#0066cc] hover:text-[#004b93] hover:underline"
+                >
+                  Forgot password?
+                </a>
+              </div>
+              <input
+                {...register("password")}
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                aria-invalid={errors.password ? "true" : "false"}
+                aria-describedby={errors.password ? "password-error" : undefined}
+                className={`h-9 w-full rounded-[3px] border px-3 text-sm bg-white text-[#111111] transition-all outline-none focus:ring-1 ${
+                  errors.password
+                    ? "border-[#d13212] focus:border-[#d13212] focus:ring-[#d13212]"
+                    : "border-[#aab7b7] focus:border-[#e47911] focus:ring-[#e47911]"
+                }`}
+                disabled={isSubmitting}
+              />
+              {errors.password && (
+                <span 
+                  id="password-error" 
+                  className="mt-1 block text-xs font-semibold text-[#d13212] flex items-center gap-1"
+                  role="alert"
+                >
+                  <ShieldAlert size={12} /> {errors.password.message}
+                </span>
+              )}
+            </div>
+
+            {/* Blue Primary Button (AWS Flat Action Button) */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full h-9 rounded-[3px] bg-[#0066cc] hover:bg-[#0052a3] text-white font-medium text-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0066cc] disabled:opacity-50 cursor-pointer flex items-center justify-center"
+            >
+              {isSubmitting ? "Signing In..." : "Sign In"}
+            </button>
+          </form>
+        </div>
+
+        {/* AWS Support Helper Footer Box */}
+        <div className="bg-white border border-[#d5dbdb] p-4 text-xs text-zinc-500 rounded-sm">
+          <div className="flex gap-2 items-start">
+            <Info size={14} className="text-[#0066cc] shrink-0 mt-0.5" />
+            <p>
+              By signing in, you agree to the AWS Customer Agreement. For Route 53 Clone setup queries, contact AWS Support.
+            </p>
+          </div>
+        </div>
       </div>
+
+      {/* Page Footer */}
+      <footer className="text-xs text-zinc-500 mt-12 flex gap-4">
+        <a href="#" className="hover:underline">Terms of Use</a>
+        <a href="#" className="hover:underline">Privacy Policy</a>
+        <span>© 2026, Amazon Web Services, Inc.</span>
+      </footer>
     </div>
   );
 }

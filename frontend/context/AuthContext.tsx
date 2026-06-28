@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const profile = await authService.getCurrentUser();
       setUser(profile);
       
-      router.push("/dashboard");
+      router.push("/hosted-zones");
     } catch (error) {
       removeToken();
       setUser(null);
