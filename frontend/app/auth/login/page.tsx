@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { ShieldAlert, Info } from "lucide-react";
+import Link from "next/link";
 import useAuth from "../../../hooks/useAuth";
 import { Button } from "../../../components/ui/Button";
 
@@ -197,6 +198,14 @@ export default function LoginPage() {
               Sign In
             </Button>
           </form>
+
+          {/* Link to Register */}
+          <div className="mt-6 text-center text-xs border-t border-[#eaeded] pt-4">
+            <span className="text-zinc-500">Don't have an account? </span>
+            <Link href="/auth/register" className="text-[#0066cc] hover:text-[#004b93] hover:underline font-bold">
+              Register
+            </Link>
+          </div>
         </div>
 
         {/* AWS Support Helper Footer Box */}
