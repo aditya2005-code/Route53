@@ -1,5 +1,5 @@
 import client from "../lib/axios";
-import { HostedZonesPaginatedResponse } from "../types/hostedZone";
+import { HostedZone, HostedZonesPaginatedResponse } from "../types/hostedZone";
 
 export const hostedZoneService = {
   /**
@@ -18,6 +18,42 @@ export const hostedZoneService = {
       },
     });
     return response.data;
+  },
+
+  /**
+   * Creates a new hosted zone for a domain.
+   */
+  async createHostedZone(
+    domainName: string,
+    description?: string
+  ): Promise<HostedZone> {
+    const response = await client.post<HostedZone>("/hosted-zones/", {
+      domain_name: domainName,
+      description: description || null,
+    });
+    return response.data;
+  },
+
+  /**
+   * Updates an existing hosted zone domain name or description.
+   */
+  async updateHostedZone(
+    zoneId: number,
+    domainName?: string,
+    description?: string
+  ): Promise<HostedZone> {
+    const response = await client.put<HostedZone>(`/hosted-zones/${zoneId}`, {
+      domain_name: domainName || undefined,
+      description: description !== undefined ? description : undefined,
+    });
+    return response.data;
+  },
+
+  /**
+   * Deletes a hosted zone by ID.
+   */
+  async deleteHostedZone(zoneId: number): Promise<void> {
+    await client.delete(`/hosted-zones/${zoneId}`);
   },
 };
 
