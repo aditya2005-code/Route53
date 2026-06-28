@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.models.hosted_zone import HostedZone
 from app.schemas.hosted_zone import HostedZoneCreate, HostedZoneUpdate
 from app.repositories.hosted_zone_repository import HostedZoneRepository
-from app.core.exceptions import DuplicateResourceException, ResourceNotFoundException, PermissionDeniedException
+from app.core.exceptions import DuplicateResourceException, ResourceNotFoundException
 
 class HostedZoneService:
     """
@@ -31,17 +31,19 @@ class HostedZoneService:
     def get_hosted_zone(self, user_id: int, zone_id: int) -> HostedZone:
         """
         Business Logic:
-        1. Fetch the zone.
-        2. Ensure the zone exists.
-        3. Ensure the requesting user is the owner of the zone (Security/Authorization).
+        1. Fetch the zone by ID AND owner in a single query.
+        2. If the result is None — whether the zone doesn't exist or belongs to another
+           user — raise ResourceNotFoundException.
+
+        WHY NOT PermissionDeniedException?
+        Returning 403 Forbidden tells the caller "this resource exists but isn't yours."
+        That is a resource enumeration vulnerability: an attacker can probe IDs and
+        distinguish between 'not found' and 'found but forbidden'.
+        Returning 404 for both cases leaks zero information.
         """
-        zone = self.zone_repo.get_zone_by_id(zone_id)
+        zone = self.zone_repo.get_zone_by_id_and_owner(zone_id, user_id)
         if not zone:
             raise ResourceNotFoundException("Hosted zone not found.")
-        
-        if zone.user_id != user_id:
-            raise PermissionDeniedException("You do not have permission to access this hosted zone.")
-            
         return zone
 
     def list_hosted_zones(self, user_id: int) -> List[HostedZone]:
@@ -91,7 +93,7 @@ class HostedZoneService:
         if schema.description is not None:
             zone.description = schema.description
 
-        return self.zone_repo.update_zone(zone)
+        return self.zone_repo.update_zone_if_owned(zone, user_id)
 
     def delete_hosted_zone(self, user_id: int, zone_id: int) -> None:
         """
@@ -100,4 +102,4 @@ class HostedZoneService:
         2. Delete the zone. (Cascade deletes will automatically handle child DNS records at DB level).
         """
         zone = self.get_hosted_zone(user_id, zone_id)
-        self.zone_repo.delete_zone(zone)
+        self.zone_repo.delete_zone_if_owned(zone, user_id)

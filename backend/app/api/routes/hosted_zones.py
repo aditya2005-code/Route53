@@ -7,7 +7,7 @@ from app.api.dependencies import get_current_user
 from app.models.user import User
 from app.schemas.hosted_zone import HostedZoneCreate, HostedZoneUpdate, HostedZoneResponse
 from app.services.hosted_zone_service import HostedZoneService
-from app.core.exceptions import DuplicateResourceException, PermissionDeniedException, ResourceNotFoundException
+from app.core.exceptions import DuplicateResourceException, ResourceNotFoundException
 
 router = APIRouter()
 
@@ -48,8 +48,6 @@ def get_hosted_zone(
         return service.get_hosted_zone(user_id=current_user.id, zone_id=zone_id)
     except ResourceNotFoundException as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except PermissionDeniedException as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
 
 @router.put("/{zone_id}", response_model=HostedZoneResponse)
 def update_hosted_zone(
@@ -63,8 +61,6 @@ def update_hosted_zone(
         return service.update_hosted_zone(user_id=current_user.id, zone_id=zone_id, schema=schema)
     except ResourceNotFoundException as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except PermissionDeniedException as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
     except DuplicateResourceException as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
 
@@ -79,5 +75,3 @@ def delete_hosted_zone(
         service.delete_hosted_zone(user_id=current_user.id, zone_id=zone_id)
     except ResourceNotFoundException as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except PermissionDeniedException as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
