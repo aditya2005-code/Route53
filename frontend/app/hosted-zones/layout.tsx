@@ -1,13 +1,10 @@
 import React from "react";
+import DashboardLayout from "../../components/layout/DashboardLayout";
 
 export default function HostedZonesLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="hosted-zones-layout">
-      {children}
-    </div>
-  );
+  return <DashboardLayout>{children}</DashboardLayout>;
 }
