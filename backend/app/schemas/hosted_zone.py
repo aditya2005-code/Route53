@@ -129,3 +129,4 @@ class HostedZoneResponse(BaseModel):
     description: Optional[str]
     created_at: datetime
     updated_at: datetime
+    record_count: int
