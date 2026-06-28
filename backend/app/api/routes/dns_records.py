@@ -1,0 +1,4 @@
+# DNS Records routes
+from fastapi import APIRouter
+
+router = APIRouter()
