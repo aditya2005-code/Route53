@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { ShieldAlert, Info } from "lucide-react";
 import useAuth from "../../../hooks/useAuth";
+import { Button } from "../../../components/ui/Button";
 
 // Zod schema for validation
 const loginSchema = z.object({
@@ -187,13 +188,14 @@ export default function LoginPage() {
             </div>
 
             {/* Blue Primary Button (AWS Flat Action Button) */}
-            <button
+            <Button
               type="submit"
-              disabled={isSubmitting}
-              className="w-full h-9 rounded-[3px] bg-[#0066cc] hover:bg-[#0052a3] text-white font-medium text-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0066cc] disabled:opacity-50 cursor-pointer flex items-center justify-center"
+              variant="primary"
+              isLoading={isSubmitting}
+              className="w-full h-9 rounded-[3px]"
             >
-              {isSubmitting ? "Signing In..." : "Sign In"}
-            </button>
+              Sign In
+            </Button>
           </form>
         </div>
 
