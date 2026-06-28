@@ -23,23 +23,19 @@ def create_hosted_zone(
     except DuplicateResourceException as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
 
-@router.get("/", response_model=List[HostedZoneResponse])
+from app.schemas.pagination import PaginatedResponse
+
+@router.get("/", response_model=PaginatedResponse[HostedZoneResponse])
 def get_hosted_zones(
-    query: Optional[str] = Query(None, description="Search by domain name"),
-    skip: int = Query(0, ge=0, description="Pagination: number of records to skip"),
-    limit: int = Query(100, ge=1, le=1000, description="Pagination: maximum records to return"),
+    search: Optional[str] = Query(None, description="Search by domain name"),
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(10, ge=1, le=1000, description="Items per page"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     service = HostedZoneService(db)
-    # If a search query is provided, use the search method
-    if query:
-        zones = service.search_hosted_zones(user_id=current_user.id, query=query)
-    else:
-        zones = service.list_hosted_zones(user_id=current_user.id)
-    
-    # Manual in-memory pagination for simplicity, though normally done at DB layer
-    return zones[skip : skip + limit]
+    result = service.get_paginated_zones(user_id=current_user.id, search=search, page=page, limit=limit)
+    return result
 
 @router.get("/{zone_id}", response_model=HostedZoneResponse)
 def get_hosted_zone(

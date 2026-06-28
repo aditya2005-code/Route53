@@ -28,26 +28,29 @@ def create_dns_record(
     except ResourceNotFoundException as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
-@router.get("/hosted-zones/{zone_id}/records", response_model=List[DNSRecordResponse])
+from app.schemas.pagination import PaginatedResponse
+
+@router.get("/hosted-zones/{zone_id}/records", response_model=PaginatedResponse[DNSRecordResponse])
 def get_dns_records(
     zone_id: int,
-    query: Optional[str] = Query(None, description="Search by record name"),
-    record_type: Optional[RecordType] = Query(None, description="Filter by record type"),
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=1000),
+    search: Optional[str] = Query(None, description="Search by record name or value"),
+    type: Optional[RecordType] = Query(None, description="Filter by record type"),
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(10, ge=1, le=1000, description="Items per page"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     service = DNSRecordService(db)
     try:
-        if query:
-            records = service.search_dns_records(user_id=current_user.id, zone_id=zone_id, query=query)
-        elif record_type:
-            records = service.filter_dns_records_by_type(user_id=current_user.id, zone_id=zone_id, record_type=record_type)
-        else:
-            records = service.list_dns_records(user_id=current_user.id, zone_id=zone_id)
-            
-        return records[skip : skip + limit]
+        result = service.get_paginated_records(
+            user_id=current_user.id, 
+            zone_id=zone_id, 
+            search=search, 
+            record_type=type,
+            page=page,
+            limit=limit
+        )
+        return result
     except PermissionDeniedException as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
     except ResourceNotFoundException as e:
