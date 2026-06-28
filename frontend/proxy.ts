@@ -15,7 +15,14 @@ export function proxy(request: NextRequest) {
   }
 
   const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/auth/login");
-  const isProtectedPage = pathname.startsWith("/dashboard") || pathname.startsWith("/hosted-zones");
+  const isProtectedPage =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/hosted-zones") ||
+    pathname.startsWith("/traffic-policies") ||
+    pathname.startsWith("/health-checks") ||
+    pathname.startsWith("/resolver") ||
+    pathname.startsWith("/profiles") ||
+    pathname.startsWith("/settings");
 
   // 1. If unauthenticated and trying to access protected route -> redirect to /login
   if (!token && isProtectedPage) {
@@ -37,6 +44,11 @@ export const config = {
     "/",
     "/dashboard/:path*",
     "/hosted-zones/:path*",
+    "/traffic-policies/:path*",
+    "/health-checks/:path*",
+    "/resolver/:path*",
+    "/profiles/:path*",
+    "/settings/:path*",
     "/login",
     "/auth/login",
   ],
