@@ -1,7 +1,10 @@
+import FeaturePlaceholder from "../../components/ui/FeaturePlaceholder";
+
 export default function HealthChecksPage() {
   return (
-    <div>
-      <h1>Health Checks</h1>
-    </div>
+    <FeaturePlaceholder
+      title="Health Checks"
+      moduleName="Health Checks"
+    />
   );
 }
