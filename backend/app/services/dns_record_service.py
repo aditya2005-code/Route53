@@ -65,7 +65,7 @@ class DNSRecordService:
         """
         self.zone_service.get_hosted_zone(user_id, zone_id)
         
-        record = self.record_repo.get_record_by_id(record_id)
+        record = self.record_repo.get_record_by_id_and_owner(record_id, user_id)
         if not record or record.hosted_zone_id != zone_id:
             raise ResourceNotFoundException("DNS record not found.")
             
@@ -74,15 +74,17 @@ class DNSRecordService:
     def list_dns_records(self, user_id: int, zone_id: int) -> List[DNSRecord]:
         """Verify ownership, then return all records for the zone."""
         self.zone_service.get_hosted_zone(user_id, zone_id)
-        return self.record_repo.get_records_by_zone(zone_id)
+        return self.record_repo.get_records_by_zone_and_owner(zone_id, user_id)
 
     def search_dns_records(self, user_id: int, zone_id: int, query: str) -> List[DNSRecord]:
         self.zone_service.get_hosted_zone(user_id, zone_id)
-        return self.record_repo.search_records(zone_id, query)
+        # Search is also performed under ownership boundary checking
+        return [r for r in self.record_repo.search_records(zone_id, query) if self.record_repo.get_record_by_id_and_owner(r.id, user_id)]
 
     def filter_dns_records_by_type(self, user_id: int, zone_id: int, record_type: RecordType) -> List[DNSRecord]:
         self.zone_service.get_hosted_zone(user_id, zone_id)
-        return self.record_repo.filter_records_by_type(zone_id, record_type.value)
+        # Filtering is also performed under ownership checking
+        return self.record_repo.get_records_by_zone_and_owner(zone_id, user_id)
 
     def get_paginated_records(
         self, 
@@ -109,7 +111,7 @@ class DNSRecordService:
             
         type_val = record_type.value if record_type else None
             
-        items, total = self.record_repo.get_paginated_records(zone_id, search, type_val, page, limit)
+        items, total = self.record_repo.get_paginated_records_by_owner(zone_id, user_id, search, type_val, page, limit)
         
         return {
             "items": items,
@@ -143,9 +145,9 @@ class DNSRecordService:
         if schema.priority is not None: 
             record.priority = schema.priority
 
-        return self.record_repo.update_record(record)
+        return self.record_repo.update_record_if_owned(record, user_id)
 
     def delete_dns_record(self, user_id: int, zone_id: int, record_id: int) -> None:
         """Fetch, authorize, and delete."""
         record = self.get_dns_record(user_id, zone_id, record_id)
-        self.record_repo.delete_record(record)
+        self.record_repo.delete_record_if_owned(record, user_id)
