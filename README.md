@@ -470,7 +470,8 @@ App available at: `http://localhost:3000`
 
 ---
 
-## 🔐 Environment Variables
+## 🔐 Environment Variables (Sample Configuration)
+> **Note:** The following environment variables are provided as example values for this assignment. Replace them with your own configuration when deploying the project.
 
 ### Backend (`backend/.env`)
 
