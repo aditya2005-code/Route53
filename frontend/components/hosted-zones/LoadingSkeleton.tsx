@@ -8,6 +8,8 @@ export default function LoadingSkeleton() {
       <table className="w-full text-left border-collapse">
         <thead className="bg-[#f2f3f3] border-b border-[#d5dbdb] text-xs font-bold text-zinc-700 select-none">
           <tr>
+            {/* Blank column placeholder for radio select */}
+            <th className="px-4 py-2.5 w-10"></th>
             <th className="px-4 py-2.5 w-1/3">Domain name</th>
             <th className="px-4 py-2.5 w-1/3">Description</th>
             <th className="px-4 py-2.5 w-24">Type</th>
@@ -18,6 +20,9 @@ export default function LoadingSkeleton() {
         <tbody className="divide-y divide-[#eaeded]">
           {skeletonRows.map((_, index) => (
             <tr key={index} className="animate-pulse">
+              <td className="px-4 py-3 w-10">
+                <div className="h-3.5 w-3.5 bg-zinc-200 rounded-full mx-auto" />
+              </td>
               <td className="px-4 py-3">
                 <div className="h-4 bg-zinc-200 rounded-sm w-3/4" />
               </td>
