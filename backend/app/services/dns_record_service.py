@@ -84,6 +84,41 @@ class DNSRecordService:
         self.zone_service.get_hosted_zone(user_id, zone_id)
         return self.record_repo.filter_records_by_type(zone_id, record_type.value)
 
+    def get_paginated_records(
+        self, 
+        user_id: int, 
+        zone_id: int, 
+        search: str = None, 
+        record_type: RecordType = None, 
+        page: int = 1, 
+        limit: int = 10
+    ) -> dict:
+        """
+        Fetch DNS records with pagination, optional search, and optional type filtering.
+        Returns a dictionary matching the PaginatedResponse schema structure.
+        """
+        import math
+        
+        # Verify ownership of the zone
+        self.zone_service.get_hosted_zone(user_id, zone_id)
+        
+        # Validation
+        if page < 1: page = 1
+        if limit < 1: limit = 10
+        if limit > 1000: limit = 1000
+            
+        type_val = record_type.value if record_type else None
+            
+        items, total = self.record_repo.get_paginated_records(zone_id, search, type_val, page, limit)
+        
+        return {
+            "items": items,
+            "total": total,
+            "page": page,
+            "limit": limit,
+            "pages": math.ceil(total / limit) if limit > 0 else 1
+        }
+
     def update_dns_record(self, user_id: int, zone_id: int, record_id: int, schema: DNSRecordUpdate) -> DNSRecord:
         """
         Business Logic:

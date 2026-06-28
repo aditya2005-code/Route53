@@ -28,6 +28,31 @@ class HostedZoneRepository(BaseRepository[HostedZone]):
         stmt = select(HostedZone).where(HostedZone.user_id == user_id)
         return list(self.db.execute(stmt).scalars().all())
 
+    def get_paginated_zones(self, user_id: int, search: Optional[str] = None, page: int = 1, limit: int = 10) -> tuple[List[HostedZone], int]:
+        """
+        Fetch paginated zones for a user with optional search by domain name.
+        Returns a tuple of (items, total_count).
+        """
+        from sqlalchemy import func
+        
+        # Base query
+        stmt = select(HostedZone).where(HostedZone.user_id == user_id)
+        
+        # Apply search filter
+        if search:
+            stmt = stmt.where(HostedZone.domain_name.ilike(f"%{search}%"))
+            
+        # Get total count (ignoring pagination limits)
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        total = self.db.execute(count_stmt).scalar_one()
+        
+        # Apply pagination
+        offset = (page - 1) * limit
+        stmt = stmt.offset(offset).limit(limit)
+        
+        items = list(self.db.execute(stmt).scalars().all())
+        return items, total
+
     def search_zones(self, user_id: int, domain_query: str) -> List[HostedZone]:
         """
         Search for zones belonging to a user by domain name using a LIKE clause.

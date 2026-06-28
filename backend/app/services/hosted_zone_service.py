@@ -52,6 +52,28 @@ class HostedZoneService:
         """Search domains owned by the user."""
         return self.zone_repo.search_zones(user_id, query)
 
+    def get_paginated_zones(self, user_id: int, search: str = None, page: int = 1, limit: int = 10) -> dict:
+        """
+        Fetch zones with pagination and optional search.
+        Returns a dictionary matching the PaginatedResponse schema structure.
+        """
+        import math
+        
+        # Validation
+        if page < 1: page = 1
+        if limit < 1: limit = 10
+        if limit > 1000: limit = 1000
+            
+        items, total = self.zone_repo.get_paginated_zones(user_id, search, page, limit)
+        
+        return {
+            "items": items,
+            "total": total,
+            "page": page,
+            "limit": limit,
+            "pages": math.ceil(total / limit) if limit > 0 else 1
+        }
+
     def update_hosted_zone(self, user_id: int, zone_id: int, schema: HostedZoneUpdate) -> HostedZone:
         """
         Business Logic:
