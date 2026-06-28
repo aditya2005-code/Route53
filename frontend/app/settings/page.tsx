@@ -1,10 +1,10 @@
 import FeaturePlaceholder from "../../components/ui/FeaturePlaceholder";
 
-export default function TrafficPoliciesPage() {
+export default function SettingsPage() {
   return (
     <FeaturePlaceholder
-      title="Traffic Policies"
-      moduleName="Traffic Policies"
+      title="Settings"
+      moduleName="Settings"
     />
   );
 }
