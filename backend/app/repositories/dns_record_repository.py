@@ -24,6 +24,42 @@ class DNSRecordRepository(BaseRepository[DNSRecord]):
         stmt = select(DNSRecord).where(DNSRecord.hosted_zone_id == zone_id)
         return list(self.db.execute(stmt).scalars().all())
 
+    def get_paginated_records(
+        self, 
+        zone_id: int, 
+        search: Optional[str] = None, 
+        record_type: Optional[str] = None, 
+        page: int = 1, 
+        limit: int = 10
+    ) -> tuple[List[DNSRecord], int]:
+        """
+        Fetch paginated DNS records for a zone with optional search (name/value) and type filter.
+        Returns a tuple of (items, total_count).
+        """
+        from sqlalchemy import func, or_
+        
+        stmt = select(DNSRecord).where(DNSRecord.hosted_zone_id == zone_id)
+        
+        if record_type:
+            stmt = stmt.where(DNSRecord.record_type == record_type)
+            
+        if search:
+            stmt = stmt.where(
+                or_(
+                    DNSRecord.record_name.ilike(f"%{search}%"),
+                    DNSRecord.value.ilike(f"%{search}%")
+                )
+            )
+            
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        total = self.db.execute(count_stmt).scalar_one()
+        
+        offset = (page - 1) * limit
+        stmt = stmt.offset(offset).limit(limit)
+        
+        items = list(self.db.execute(stmt).scalars().all())
+        return items, total
+
     def search_records(self, zone_id: int, query: str) -> List[DNSRecord]:
         """
         Search for records within a zone by matching the record name.
