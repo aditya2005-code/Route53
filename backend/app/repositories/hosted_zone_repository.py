@@ -16,8 +16,28 @@ class HostedZoneRepository(BaseRepository[HostedZone]):
         return self.create(zone, commit=commit)
 
     def get_zone_by_id(self, zone_id: int) -> Optional[HostedZone]:
-        """Alias for get_by_id."""
+        """Alias for get_by_id. Used internally; prefer get_zone_by_id_and_owner for protected endpoints."""
         return self.get_by_id(zone_id)
+
+    def get_zone_by_id_and_owner(self, zone_id: int, user_id: int) -> Optional[HostedZone]:
+        """
+        Ownership-aware fetch.
+
+        WHY this exists:
+        Fetching a zone by ID then checking zone.user_id in the service layer
+        would require the service to raise PermissionDeniedException, which maps
+        to HTTP 403 — leaking the fact that the resource exists (enumeration risk).
+
+        By filtering on BOTH id AND user_id in a single SQL query, the result is
+        simply None when the zone doesn't exist OR belongs to another user.
+        The service layer then raises ResourceNotFoundException → HTTP 404 in both cases.
+        The attacker learns nothing.
+        """
+        stmt = select(HostedZone).where(
+            HostedZone.id == zone_id,
+            HostedZone.user_id == user_id
+        )
+        return self.db.execute(stmt).scalar_one_or_none()
 
     def get_all_zones(self) -> List[HostedZone]:
         """Alias for get_all."""
@@ -74,9 +94,27 @@ class HostedZoneRepository(BaseRepository[HostedZone]):
             self.db.flush()
         return zone
 
+    def update_zone_if_owned(self, zone: HostedZone, user_id: int, commit: bool = True) -> HostedZone:
+        """
+        Update only if owned, otherwise raise ResourceNotFoundException.
+        """
+        if zone.user_id != user_id:
+            from app.core.exceptions import ResourceNotFoundException
+            raise ResourceNotFoundException("Hosted zone not found.")
+        return self.update_zone(zone, commit=commit)
+
     def delete_zone(self, zone: HostedZone, commit: bool = True) -> None:
         """Alias for delete."""
         self.delete(zone, commit=commit)
+
+    def delete_zone_if_owned(self, zone: HostedZone, user_id: int, commit: bool = True) -> None:
+        """
+        Delete only if owned, otherwise raise ResourceNotFoundException.
+        """
+        if zone.user_id != user_id:
+            from app.core.exceptions import ResourceNotFoundException
+            raise ResourceNotFoundException("Hosted zone not found.")
+        self.delete_zone(zone, commit=commit)
 
     def zone_exists(self, domain_name: str) -> bool:
         """
