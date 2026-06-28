@@ -24,8 +24,12 @@ const registerSchema = z
       .email("Enter a valid email address"),
     password: z
       .string()
-      .min(8, "Password must be at least 8 characters")
-      .max(64, "Password cannot exceed 64 characters"),
+      .min(8, "Password must be at least 8 characters long and contain at least one letter and one number.")
+      .max(64, "Password cannot exceed 64 characters")
+      .refine(
+        (v) => /[a-zA-Z]/.test(v) && /[0-9]/.test(v),
+        "Password must contain at least one letter and one number."
+      ),
     confirmPassword: z.string().min(1, "Confirm password is required"),
   })
   .refine((data) => data.password === data.confirmPassword, {
