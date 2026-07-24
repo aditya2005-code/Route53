@@ -1,10 +1,13 @@
-import FeaturePlaceholder from "../../components/ui/FeaturePlaceholder";
-
 export default function TrafficPoliciesPage() {
   return (
-    <FeaturePlaceholder
-      title="Traffic Policies"
-      moduleName="Traffic Policies"
-    />
+    <div className="space-y-6">
+      <h1 className="text-2xl font-semibold">
+        Traffic Policies
+      </h1>
+
+      <p className="text-muted-foreground">
+        Coming soon...
+      </p>
+    </div>
   );
 }
