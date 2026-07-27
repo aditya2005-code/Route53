@@ -46,13 +46,13 @@ function SidebarLink({ href, icon, label, active, disabled }: SidebarLinkProps) 
 export default function Sidebar() {
   const pathname = usePathname();
 
-  const links = [
-    { href: "/hosted-zones", label: "Hosted Zones", icon: <Globe size={14} />, active: true },
-    { href: "/traffic-policies", label: "Traffic Policies", icon: <Network size={14} />, disabled: true },
-    { href: "/health-checks", label: "Health Checks", icon: <Activity size={14} />, disabled: true },
-    { href: "/resolver", label: "Resolver", icon: <Server size={14} />, disabled: true },
-    { href: "/profiles", label: "Profiles", icon: <User size={14} />, disabled: true },
-    { href: "/settings", label: "Settings", icon: <Settings size={14} />, disabled: true },
+  const links: { href: string; label: string; icon: React.ReactNode; disabled?: boolean }[] = [
+    { href: "/hosted-zones", label: "Hosted Zones", icon: <Globe size={14} /> },
+    { href: "/traffic-policies", label: "Traffic Policies", icon: <Network size={14} /> },
+    { href: "/health-checks", label: "Health Checks", icon: <Activity size={14} /> },
+    { href: "/resolver", label: "Resolver", icon: <Server size={14} /> },
+    { href: "/profiles", label: "Profiles", icon: <User size={14} /> },
+    { href: "/settings", label: "Settings", icon: <Settings size={14} /> },
   ];
 
   return (

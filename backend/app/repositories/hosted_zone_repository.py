@@ -22,22 +22,25 @@ class HostedZoneRepository(BaseRepository[HostedZone]):
     def get_zone_by_id_and_owner(self, zone_id: int, user_id: int) -> Optional[HostedZone]:
         """
         Ownership-aware fetch.
-
-        WHY this exists:
-        Fetching a zone by ID then checking zone.user_id in the service layer
-        would require the service to raise PermissionDeniedException, which maps
-        to HTTP 403 — leaking the fact that the resource exists (enumeration risk).
-
-        By filtering on BOTH id AND user_id in a single SQL query, the result is
-        simply None when the zone doesn't exist OR belongs to another user.
-        The service layer then raises ResourceNotFoundException → HTTP 404 in both cases.
-        The attacker learns nothing.
         """
-        stmt = select(HostedZone).where(
-            HostedZone.id == zone_id,
-            HostedZone.user_id == user_id
+        from app.models.dns_record import DNSRecord
+        from sqlalchemy import func
+
+        stmt = (
+            select(HostedZone, func.count(DNSRecord.id).label("record_count"))
+            .outerjoin(DNSRecord, HostedZone.id == DNSRecord.hosted_zone_id)
+            .where(
+                HostedZone.id == zone_id,
+                HostedZone.user_id == user_id
+            )
+            .group_by(HostedZone.id)
         )
-        return self.db.execute(stmt).scalar_one_or_none()
+        row = self.db.execute(stmt).first()
+        if row:
+            zone, record_count = row
+            zone.record_count = record_count
+            return zone
+        return None
 
     def get_all_zones(self) -> List[HostedZone]:
         """Alias for get_all."""
@@ -45,8 +48,21 @@ class HostedZoneRepository(BaseRepository[HostedZone]):
 
     def get_zones_by_user(self, user_id: int) -> List[HostedZone]:
         """Fetch all hosted zones belonging to a specific user."""
-        stmt = select(HostedZone).where(HostedZone.user_id == user_id)
-        return list(self.db.execute(stmt).scalars().all())
+        from app.models.dns_record import DNSRecord
+        from sqlalchemy import func
+
+        stmt = (
+            select(HostedZone, func.count(DNSRecord.id).label("record_count"))
+            .outerjoin(DNSRecord, HostedZone.id == DNSRecord.hosted_zone_id)
+            .where(HostedZone.user_id == user_id)
+            .group_by(HostedZone.id)
+        )
+        results = self.db.execute(stmt).all()
+        items = []
+        for zone, record_count in results:
+            zone.record_count = record_count
+            items.append(zone)
+        return items
 
     def get_paginated_zones(self, user_id: int, search: Optional[str] = None, page: int = 1, limit: int = 10) -> tuple[List[HostedZone], int]:
         """
@@ -54,34 +70,59 @@ class HostedZoneRepository(BaseRepository[HostedZone]):
         Returns a tuple of (items, total_count).
         """
         from sqlalchemy import func
+        from app.models.dns_record import DNSRecord
         
-        # Base query
-        stmt = select(HostedZone).where(HostedZone.user_id == user_id)
+        # Base query to get HostedZones matching criteria (for count and base items)
+        base_stmt = select(HostedZone).where(HostedZone.user_id == user_id)
+        if search:
+            base_stmt = base_stmt.where(HostedZone.domain_name.ilike(f"%{search}%"))
+            
+        # Get total count (ignoring pagination limits)
+        count_stmt = select(func.count()).select_from(base_stmt.subquery())
+        total = self.db.execute(count_stmt).scalar_one()
         
-        # Apply search filter
+        # Apply pagination and count aggregation
+        offset = (page - 1) * limit
+        stmt = (
+            select(HostedZone, func.count(DNSRecord.id).label("record_count"))
+            .outerjoin(DNSRecord, HostedZone.id == DNSRecord.hosted_zone_id)
+            .where(HostedZone.user_id == user_id)
+        )
         if search:
             stmt = stmt.where(HostedZone.domain_name.ilike(f"%{search}%"))
             
-        # Get total count (ignoring pagination limits)
-        count_stmt = select(func.count()).select_from(stmt.subquery())
-        total = self.db.execute(count_stmt).scalar_one()
+        stmt = stmt.group_by(HostedZone.id).offset(offset).limit(limit)
         
-        # Apply pagination
-        offset = (page - 1) * limit
-        stmt = stmt.offset(offset).limit(limit)
-        
-        items = list(self.db.execute(stmt).scalars().all())
+        results = self.db.execute(stmt).all()
+        items = []
+        for zone, record_count in results:
+            zone.record_count = record_count
+            items.append(zone)
+            
         return items, total
 
     def search_zones(self, user_id: int, domain_query: str) -> List[HostedZone]:
         """
         Search for zones belonging to a user by domain name using a LIKE clause.
         """
-        stmt = select(HostedZone).where(
-            HostedZone.user_id == user_id,
-            HostedZone.domain_name.ilike(f"%{domain_query}%")
+        from app.models.dns_record import DNSRecord
+        from sqlalchemy import func
+
+        stmt = (
+            select(HostedZone, func.count(DNSRecord.id).label("record_count"))
+            .outerjoin(DNSRecord, HostedZone.id == DNSRecord.hosted_zone_id)
+            .where(
+                HostedZone.user_id == user_id,
+                HostedZone.domain_name.ilike(f"%{domain_query}%")
+            )
+            .group_by(HostedZone.id)
         )
-        return list(self.db.execute(stmt).scalars().all())
+        results = self.db.execute(stmt).all()
+        items = []
+        for zone, record_count in results:
+            zone.record_count = record_count
+            items.append(zone)
+        return items
 
     def update_zone(self, zone: HostedZone, commit: bool = True) -> HostedZone:
         """

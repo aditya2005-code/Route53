@@ -30,3 +30,9 @@ class TrafficPolicyVersion(Base):
     __table_args__ = (
         Index("ix_traffic_policy_versions_policy_id", "policy_id"),
     )
+from app.db.database import Base
+
+class TrafficPolicyVersion(Base):
+    __tablename__ = "traffic_policy_versions"
+
+    # TODO: Add columns

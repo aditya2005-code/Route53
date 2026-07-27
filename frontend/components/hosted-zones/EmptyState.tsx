@@ -3,7 +3,11 @@
 import { Info } from "lucide-react";
 import { Button } from "../ui/Button";
 
-export default function EmptyState() {
+interface EmptyStateProps {
+  onCreateClick?: () => void;
+}
+
+export default function EmptyState({ onCreateClick }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center border border-[#d5dbdb] bg-white p-12 text-center rounded-sm space-y-6">
       {/* Information Icon */}
@@ -21,11 +25,9 @@ export default function EmptyState() {
         </p>
       </div>
 
-      {/* Reusable Button UI Primitive (Disabled in this phase as requested) */}
       <Button
         variant="primary"
-        disabled
-        title="Create Hosted Zone is disabled in this phase"
+        onClick={onCreateClick}
       >
         Create hosted zone
       </Button>

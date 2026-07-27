@@ -1,7 +1,10 @@
+import FeaturePlaceholder from "../../components/ui/FeaturePlaceholder";
+
 export default function ProfilesPage() {
   return (
-    <div>
-      <h1>Profiles & Settings</h1>
-    </div>
+    <FeaturePlaceholder
+      title="Profiles"
+      moduleName="Profiles"
+    />
   );
 }

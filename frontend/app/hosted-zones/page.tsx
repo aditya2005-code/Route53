@@ -114,7 +114,7 @@ export default function HostedZonesPage() {
 
       {/* 2. Error Message Banner */}
       {error && (
-        <div 
+        <div
           className="flex items-start gap-3 border-l-4 border-[#d13212] bg-[#fdf3f2] p-4 text-xs text-[#111111] rounded-sm"
           role="alert"
         >
@@ -130,7 +130,7 @@ export default function HostedZonesPage() {
       {isLoading ? (
         <LoadingSkeleton />
       ) : zones.length === 0 && !search ? (
-        <EmptyState />
+        <EmptyState onCreateClick={() => setIsCreateOpen(true)} />
       ) : (
         <Card className="flex flex-col">
           {/* Card Top Filtering bar */}
@@ -150,8 +150,8 @@ export default function HostedZonesPage() {
             </div>
           ) : (
             <>
-              <HostedZonesTable 
-                zones={zones} 
+              <HostedZonesTable
+                zones={zones}
                 selectedZoneId={selectedZone?.id ?? null}
                 onSelectZone={setSelectedZone}
               />

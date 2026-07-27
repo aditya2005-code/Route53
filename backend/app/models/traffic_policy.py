@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from app.models.user import User
     from app.models.traffic_policy_version import TrafficPolicyVersion
     from app.models.traffic_policy_instance import TrafficPolicyInstance
+from app.db.database import Base
 
 class TrafficPolicy(Base):
     __tablename__ = "traffic_policies"
@@ -48,3 +49,4 @@ class TrafficPolicy(Base):
         Index("ix_traffic_policies_user_id", "user_id"),
         Index("ix_traffic_policies_name", "name"),
     )
+    # TODO: Add columns

@@ -26,7 +26,9 @@ class HostedZoneService:
             domain_name=schema.domain_name,
             description=schema.description
         )
-        return self.zone_repo.create_zone(new_zone)
+        zone = self.zone_repo.create_zone(new_zone)
+        zone.record_count = 0
+        return zone
 
     def get_hosted_zone(self, user_id: int, zone_id: int) -> HostedZone:
         """
@@ -93,7 +95,9 @@ class HostedZoneService:
         if schema.description is not None:
             zone.description = schema.description
 
-        return self.zone_repo.update_zone_if_owned(zone, user_id)
+        zone = self.zone_repo.update_zone_if_owned(zone, user_id)
+        zone.record_count = len(zone.dns_records)
+        return zone
 
     def delete_hosted_zone(self, user_id: int, zone_id: int) -> None:
         """

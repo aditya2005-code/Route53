@@ -42,10 +42,10 @@ export const hostedZoneService = {
     domainName?: string,
     description?: string
   ): Promise<HostedZone> {
-    const response = await client.put<HostedZone>(`/hosted-zones/${zoneId}`, {
-      domain_name: domainName || undefined,
-      description: description !== undefined ? description : undefined,
-    });
+    const payload: Record<string, unknown> = {};
+    if (domainName) payload.domain_name = domainName;
+    if (description !== undefined) payload.description = description;
+    const response = await client.put<HostedZone>(`/hosted-zones/${zoneId}`, payload);
     return response.data;
   },
 

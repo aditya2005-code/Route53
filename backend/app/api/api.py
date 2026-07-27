@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from app.api.routes import hosted_zones, dns_records, auth
+from app.routers.traffic_policy import router as traffic_policy_router
 
 api_router = APIRouter()
 
@@ -23,4 +24,9 @@ api_router.include_router(
 api_router.include_router(
     dns_records.router,
     tags=["DNS Records"]
+)
+
+# Include the Traffic Policies router
+api_router.include_router(
+    traffic_policy_router,
 )
