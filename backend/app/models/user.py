@@ -6,6 +6,7 @@ from app.db.database import Base
 
 if TYPE_CHECKING:
     from app.models.hosted_zone import HostedZone
+    from app.models.traffic_policy import TrafficPolicy
 
 class User(Base):
     __tablename__ = "users"
@@ -24,3 +25,11 @@ class User(Base):
         back_populates="owner",
         cascade="all, delete-orphan"
     )
+
+    # One-to-Many Relationship: User -> TrafficPolicies
+    traffic_policies: Mapped[List["TrafficPolicy"]] = relationship(
+        "TrafficPolicy",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+

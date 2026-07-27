@@ -7,6 +7,7 @@ from app.db.database import Base
 if TYPE_CHECKING:
     from app.models.user import User
     from app.models.dns_record import DNSRecord
+    from app.models.traffic_policy_instance import TrafficPolicyInstance
 
 class HostedZone(Base):
     __tablename__ = "hosted_zones"
@@ -27,3 +28,11 @@ class HostedZone(Base):
         back_populates="hosted_zone",
         cascade="all, delete-orphan"
     )
+
+    # One-to-Many Relationship: HostedZone -> TrafficPolicyInstances
+    traffic_policy_instances: Mapped[List["TrafficPolicyInstance"]] = relationship(
+        "TrafficPolicyInstance",
+        back_populates="hosted_zone",
+        cascade="all, delete-orphan"
+    )
+

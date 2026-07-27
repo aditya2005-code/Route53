@@ -34,7 +34,6 @@ def verify():
     print(f"Seeded DNS Records count: {len(records)}")
     for record in records:
         print(f" - ID: {record[0]}, Name: {record[1]}, Type: {record[2]}, Value: {record[3]}, TTL: {record[4]}s, Zone ID: {record[5]}")
-    print("=============================")
 
     conn.close()
 

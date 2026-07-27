@@ -9,6 +9,12 @@ from app.db.database import Base
 from app.core.dependencies import get_db
 from app.core.security import hash_password, create_access_token
 from app.models.user import User
+from app.models.hosted_zone import HostedZone
+from app.models.dns_record import DNSRecord
+from app.models.traffic_policy import TrafficPolicy
+from app.models.traffic_policy_version import TrafficPolicyVersion
+from app.models.traffic_policy_rule import TrafficPolicyRule
+from app.models.traffic_policy_instance import TrafficPolicyInstance
 
 # Use an in-memory SQLite database for testing.
 # StaticPool is used to prevent SQLite from closing the in-memory DB between connections.

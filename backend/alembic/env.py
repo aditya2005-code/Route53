@@ -25,6 +25,10 @@ from app.db.database import Base
 from app.models.user import User            # noqa: F401 - registers User table
 from app.models.hosted_zone import HostedZone  # noqa: F401 - registers HostedZone table
 from app.models.dns_record import DNSRecord    # noqa: F401 - registers DNSRecord table
+from app.models.traffic_policy import TrafficPolicy          # noqa: F401 - registers TrafficPolicy table
+from app.models.traffic_policy_version import TrafficPolicyVersion  # noqa: F401 - registers TrafficPolicyVersion table
+from app.models.traffic_policy_rule import TrafficPolicyRule  # noqa: F401 - registers TrafficPolicyRule table
+from app.models.traffic_policy_instance import TrafficPolicyInstance  # noqa: F401 - registers TrafficPolicyInstance table
 
 # ---------------------------------------------------------------------------
 # Alembic Config object — provides access to values in alembic.ini
