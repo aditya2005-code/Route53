@@ -27,9 +27,3 @@ class TrafficPolicyInstance(Base):
         Index("ix_traffic_policy_instances_policy_id", "policy_id"),
         Index("ix_traffic_policy_instances_hosted_zone_id", "hosted_zone_id"),
     )
-from app.db.database import Base
-
-class TrafficPolicyInstance(Base):
-    __tablename__ = "traffic_policy_instances"
-
-    # TODO: Add columns

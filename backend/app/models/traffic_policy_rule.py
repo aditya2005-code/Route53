@@ -24,9 +24,3 @@ class TrafficPolicyRule(Base):
 
     # Many-to-One Relationship: TrafficPolicyRule -> TrafficPolicyVersion
     version: Mapped["TrafficPolicyVersion"] = relationship("TrafficPolicyVersion", back_populates="rules")
-from app.db.database import Base
-
-class TrafficPolicyRule(Base):
-    __tablename__ = "traffic_policy_rules"
-
-    # TODO: Add columns
