@@ -11,7 +11,8 @@ export function saveToken(token: string): void {
 
     // 2. Sync to cookie (expires in 7 days)
     const maxAge = 7 * 24 * 60 * 60; // 7 days in seconds
-    document.cookie = `${TOKEN_KEY}=${encodeURIComponent(token)}; path=/; max-age=${maxAge}; SameSite=Lax; Secure`;
+    const secureFlag = window.location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `${TOKEN_KEY}=${encodeURIComponent(token)}; path=/; max-age=${maxAge}; SameSite=Lax${secureFlag}`;
   }
 }
 
@@ -40,6 +41,7 @@ export function removeToken(): void {
     localStorage.removeItem(TOKEN_KEY);
 
     // 2. Delete the cookie by setting max-age to 0
-    document.cookie = `${TOKEN_KEY}=; path=/; max-age=0; SameSite=Lax; Secure`;
+    const secureFlag = window.location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `${TOKEN_KEY}=; path=/; max-age=0; SameSite=Lax${secureFlag}`;
   }
 }
