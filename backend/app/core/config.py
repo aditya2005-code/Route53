@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, AliasChoices
 
@@ -15,16 +16,20 @@ class Settings(BaseSettings):
         default="HS256",
         validation_alias=AliasChoices("JWT_ALGORITHM", "ALGORITHM")
     )
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30)
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=60)
 
     # CORS configuration
-    ALLOWED_ORIGINS: str = Field(default="http://localhost:3000,http://127.0.0.1:3000")
+    ALLOWED_ORIGINS: str = Field(default="http://localhost:3000,http://127.0.0.1:3000,https://route53-beryl.vercel.app")
+
+    # OpenAI configuration
+    OPENAI_API_KEY: Optional[str] = Field(default=None)
+    OPENAI_MODEL: str = Field(default="gpt-4o-mini")
 
     # Tell Pydantic Settings to read from .env file
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"),
         env_file_encoding="utf-8",
-        extra="ignore"  # ignores other environment variables not defined here
+        extra="ignore"
     )
 
 settings = Settings()
