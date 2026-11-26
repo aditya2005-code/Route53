@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Globe, Shield, Activity, Network, Server, Settings, User } from "lucide-react";
+import {
+  LayoutDashboard,
+  Globe,
+  Bot,
+  Network,
+  Activity,
+  Server,
+  User,
+  Settings,
+} from "lucide-react";
 
 interface SidebarLinkProps {
   href: string;
@@ -31,7 +40,7 @@ function SidebarLink({ href, icon, label, active, disabled }: SidebarLinkProps) 
   return (
     <Link
       href={href}
-      className={`flex items-center gap-2 px-4 py-2 text-xs font-medium border-l-2 transition-all ${
+      className={`flex items-center gap-2 px-4 py-2.5 text-xs font-medium border-l-2 transition-all ${
         active
           ? "bg-[#353f47] text-white border-indigo-500 font-semibold"
           : "text-zinc-300 hover:bg-[#20272e] hover:text-white border-transparent"
@@ -47,12 +56,14 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   const links: { href: string; label: string; icon: React.ReactNode; disabled?: boolean }[] = [
-    { href: "/hosted-zones", label: "Hosted Zones", icon: <Globe size={14} /> },
-    { href: "/traffic-policies", label: "Traffic Policies", icon: <Network size={14} /> },
-    { href: "/health-checks", label: "Health Checks", icon: <Activity size={14} /> },
-    { href: "/resolver", label: "Resolver", icon: <Server size={14} /> },
-    { href: "/profiles", label: "Profiles", icon: <User size={14} /> },
-    { href: "/settings", label: "Settings", icon: <Settings size={14} /> },
+    { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={15} /> },
+    { href: "/hosted-zones", label: "Hosted Zones", icon: <Globe size={15} /> },
+    { href: "/troubleshoot", label: "AI Troubleshooter", icon: <Bot size={15} /> },
+    { href: "/traffic-policies", label: "Traffic Policies", icon: <Network size={15} /> },
+    { href: "/health-checks", label: "Health Checks", icon: <Activity size={15} /> },
+    { href: "/resolver", label: "Resolver", icon: <Server size={15} /> },
+    { href: "/profiles", label: "Profiles", icon: <User size={15} /> },
+    { href: "/settings", label: "Settings", icon: <Settings size={15} /> },
   ];
 
   return (
@@ -70,7 +81,7 @@ export default function Sidebar() {
             href={link.href}
             icon={link.icon}
             label={link.label}
-            active={pathname.startsWith(link.href)}
+            active={pathname === link.href || (link.href !== "/dashboard" && pathname.startsWith(link.href))}
             disabled={link.disabled}
           />
         ))}

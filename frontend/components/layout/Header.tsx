@@ -1,6 +1,7 @@
 "use client";
 
-import { LogOut, Cloud, HelpCircle, User } from "lucide-react";
+import Link from "next/link";
+import { LogOut, HelpCircle, User } from "lucide-react";
 import useAuth from "../../hooks/useAuth";
 
 export default function Header() {
@@ -9,7 +10,7 @@ export default function Header() {
   return (
     <header className="fixed top-0 inset-x-0 z-30 flex h-16 w-full items-center justify-between bg-[#232f3e] px-6 text-white select-none">
       {/* Brand & Console Name */}
-      <div className="flex items-center gap-3">
+      <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-95 transition-opacity">
         <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#ff9900] text-white font-black text-sm shadow-sm">
           53
         </div>
@@ -21,7 +22,7 @@ export default function Header() {
             Console
           </span>
         </div>
-      </div>
+      </Link>
 
       {/* Right-Side Global Actions */}
       <div className="flex items-center gap-6">
