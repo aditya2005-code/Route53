@@ -260,3 +260,4 @@ Route 53 exposes two probe endpoints for cloud load balancers and orchestrators:
 - [x] **Safe Error Responses**: 500 exceptions log tracebacks internally while returning sanitized error messages to public clients.
 - [x] **Non-Root Execution**: Docker containers run as unprivileged `appuser` (1001) and `nextjs` (1001).
 - [x] **Connection Pool Recovery**: PostgreSQL connection drops handled via `pool_pre_ping=True`.
+

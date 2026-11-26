@@ -12,3 +12,4 @@ python -m alembic upgrade head || {
 # 2. Hand over execution to CMD (uvicorn)
 echo "[Route 53 Backend] Starting Uvicorn server on port ${PORT:-8000}..."
 exec "$@"
+

@@ -37,3 +37,4 @@ def setup_logging():
     # Set third-party logger levels
     logging.getLogger("uvicorn.access").setLevel(logging.INFO)
     logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
+

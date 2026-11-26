@@ -61,3 +61,4 @@ def test_database_url_postgres_normalization():
         DATABASE_URL="postgres://user:pass@db.render.com:5432/dbname"
     )
     assert s.DATABASE_URL.startswith("postgresql://")
+

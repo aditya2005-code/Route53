@@ -74,3 +74,4 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         response = await call_next(request)
         return response
+
