@@ -39,9 +39,10 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       await login(data.email, data.password);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { detail?: string } } };
       const errorMsg =
-        err.response?.data?.detail || "Authentication failed. Please check your credentials.";
+        axiosErr.response?.data?.detail || "Authentication failed. Please check your credentials.";
       setApiError(errorMsg);
     } finally {
       setIsSubmitting(false);
@@ -201,7 +202,7 @@ export default function LoginPage() {
 
           {/* Link to Register */}
           <div className="mt-6 text-center text-xs border-t border-[#eaeded] pt-4">
-            <span className="text-zinc-500">Don't have an account? </span>
+            <span className="text-zinc-500">Don&apos;t have an account? </span>
             <Link href="/auth/register" className="text-[#0066cc] hover:text-[#004b93] hover:underline font-bold">
               Register
             </Link>

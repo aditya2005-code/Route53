@@ -50,7 +50,7 @@ export default function RegisterPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema) as any,
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -66,10 +66,11 @@ export default function RegisterPage() {
       await authService.register(data.name, data.email, data.password);
       showToast("Account created successfully.", "success");
       router.push("/login");
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { detail?: string } } };
       console.error("User registration failed:", err);
       const errorMsg =
-        err.response?.data?.detail || "Registration failed. Verify credentials and connection.";
+        axiosErr.response?.data?.detail || "Registration failed. Verify credentials and connection.";
       setApiError(errorMsg);
     } finally {
       setIsSubmitting(false);
@@ -80,7 +81,7 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-[#eaeded] text-[#111111] font-sans flex flex-col items-center justify-between py-12 px-4">
       {/* Centered Container */}
       <div className="w-full max-w-[390px] flex flex-col space-y-6">
-        
+
         {/* Flat Logo Branding */}
         <div className="flex flex-col items-center text-center">
           <div className="flex items-center gap-1">
@@ -109,10 +110,10 @@ export default function RegisterPage() {
 
           {/* Form Action */}
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-            
+
             {/* Global API Error Alert (AWS Styled) */}
             {apiError && (
-              <div 
+              <div
                 className="flex items-start gap-3 border-l-4 border-[#d13212] bg-[#fdf3f2] p-4 text-sm text-[#111111] rounded-sm"
                 role="alert"
                 aria-live="assertive"
@@ -127,8 +128,8 @@ export default function RegisterPage() {
 
             {/* Name Input Field */}
             <div className="space-y-1">
-              <label 
-                htmlFor="reg-name" 
+              <label
+                htmlFor="reg-name"
                 className="block text-sm font-bold text-[#111111]"
               >
                 Full name <span className="text-[#d13212] font-normal">*</span>
@@ -140,17 +141,16 @@ export default function RegisterPage() {
                 placeholder="e.g. John Doe"
                 aria-invalid={errors.name ? "true" : "false"}
                 aria-describedby={errors.name ? "reg-name-error" : undefined}
-                className={`h-9 w-full rounded-[3px] border px-3 text-sm bg-white text-[#111111] transition-all outline-none focus:ring-1 ${
-                  errors.name
+                className={`h-9 w-full rounded-[3px] border px-3 text-sm bg-white text-[#111111] transition-all outline-none focus:ring-1 ${errors.name
                     ? "border-[#d13212] focus:border-[#d13212] focus:ring-[#d13212]"
                     : "border-[#aab7b7] focus:border-[#e47911] focus:ring-[#e47911]"
-                }`}
+                  }`}
                 disabled={isSubmitting}
                 required
               />
               {errors.name && (
-                <span 
-                  id="reg-name-error" 
+                <span
+                  id="reg-name-error"
                   className="mt-1 block text-xs font-semibold text-[#d13212] flex items-center gap-1"
                   role="alert"
                 >
@@ -161,8 +161,8 @@ export default function RegisterPage() {
 
             {/* Email Input Field */}
             <div className="space-y-1">
-              <label 
-                htmlFor="reg-email" 
+              <label
+                htmlFor="reg-email"
                 className="block text-sm font-bold text-[#111111]"
               >
                 Email address <span className="text-[#d13212] font-normal">*</span>
@@ -174,17 +174,16 @@ export default function RegisterPage() {
                 placeholder="admin@route53.aws"
                 aria-invalid={errors.email ? "true" : "false"}
                 aria-describedby={errors.email ? "reg-email-error" : undefined}
-                className={`h-9 w-full rounded-[3px] border px-3 text-sm bg-white text-[#111111] transition-all outline-none focus:ring-1 ${
-                  errors.email
+                className={`h-9 w-full rounded-[3px] border px-3 text-sm bg-white text-[#111111] transition-all outline-none focus:ring-1 ${errors.email
                     ? "border-[#d13212] focus:border-[#d13212] focus:ring-[#d13212]"
                     : "border-[#aab7b7] focus:border-[#e47911] focus:ring-[#e47911]"
-                }`}
+                  }`}
                 disabled={isSubmitting}
                 required
               />
               {errors.email && (
-                <span 
-                  id="reg-email-error" 
+                <span
+                  id="reg-email-error"
                   className="mt-1 block text-xs font-semibold text-[#d13212] flex items-center gap-1"
                   role="alert"
                 >
@@ -195,8 +194,8 @@ export default function RegisterPage() {
 
             {/* Password Input Field */}
             <div className="space-y-1">
-              <label 
-                htmlFor="reg-password" 
+              <label
+                htmlFor="reg-password"
                 className="block text-sm font-bold text-[#111111]"
               >
                 Password <span className="text-[#d13212] font-normal">*</span>
@@ -208,17 +207,16 @@ export default function RegisterPage() {
                 placeholder="••••••••"
                 aria-invalid={errors.password ? "true" : "false"}
                 aria-describedby={errors.password ? "reg-password-error" : undefined}
-                className={`h-9 w-full rounded-[3px] border px-3 text-sm bg-white text-[#111111] transition-all outline-none focus:ring-1 ${
-                  errors.password
+                className={`h-9 w-full rounded-[3px] border px-3 text-sm bg-white text-[#111111] transition-all outline-none focus:ring-1 ${errors.password
                     ? "border-[#d13212] focus:border-[#d13212] focus:ring-[#d13212]"
                     : "border-[#aab7b7] focus:border-[#e47911] focus:ring-[#e47911]"
-                }`}
+                  }`}
                 disabled={isSubmitting}
                 required
               />
               {errors.password && (
-                <span 
-                  id="reg-password-error" 
+                <span
+                  id="reg-password-error"
                   className="mt-1 block text-xs font-semibold text-[#d13212] flex items-center gap-1"
                   role="alert"
                 >
@@ -229,8 +227,8 @@ export default function RegisterPage() {
 
             {/* Confirm Password Input Field */}
             <div className="space-y-1">
-              <label 
-                htmlFor="reg-confirm-password" 
+              <label
+                htmlFor="reg-confirm-password"
                 className="block text-sm font-bold text-[#111111]"
               >
                 Confirm password <span className="text-[#d13212] font-normal">*</span>
@@ -242,17 +240,16 @@ export default function RegisterPage() {
                 placeholder="••••••••"
                 aria-invalid={errors.confirmPassword ? "true" : "false"}
                 aria-describedby={errors.confirmPassword ? "reg-confirm-password-error" : undefined}
-                className={`h-9 w-full rounded-[3px] border px-3 text-sm bg-white text-[#111111] transition-all outline-none focus:ring-1 ${
-                  errors.confirmPassword
+                className={`h-9 w-full rounded-[3px] border px-3 text-sm bg-white text-[#111111] transition-all outline-none focus:ring-1 ${errors.confirmPassword
                     ? "border-[#d13212] focus:border-[#d13212] focus:ring-[#d13212]"
                     : "border-[#aab7b7] focus:border-[#e47911] focus:ring-[#e47911]"
-                }`}
+                  }`}
                 disabled={isSubmitting}
                 required
               />
               {errors.confirmPassword && (
-                <span 
-                  id="reg-confirm-password-error" 
+                <span
+                  id="reg-confirm-password-error"
                   className="mt-1 block text-xs font-semibold text-[#d13212] flex items-center gap-1"
                   role="alert"
                 >

@@ -70,9 +70,10 @@ export default function EditHostedZoneModal({
       showToast("Hosted Zone updated successfully.", "success");
       onSuccess();
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { detail?: string } } };
       console.error("Update hosted zone failed:", err);
-      const msg = err.response?.data?.detail || "Failed to update hosted zone. Please try again.";
+      const msg = axiosErr.response?.data?.detail || "Failed to update hosted zone. Please try again.";
       showToast(msg, "error");
     }
   };

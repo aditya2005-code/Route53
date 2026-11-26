@@ -1,14 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import dnsRecordService from "../services/dnsRecord.service";
-import { DNSRecord } from "../types/dnsRecord";
+import { DNSRecord, RecordType } from "../types/dnsRecord";
 
-/**
- * Custom hook to manage fetching and querying DNS Records under a specific Hosted Zone:
- * - Backend pagination
- * - Backend type filters
- * - Debounced search queries
- * - Loading and error states tracking
- */
 export default function useDNSRecords(zoneId: number) {
   const [records, setRecords] = useState<DNSRecord[]>([]);
   const [total, setTotal] = useState<number>(0);
@@ -19,12 +12,13 @@ export default function useDNSRecords(zoneId: number) {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState<string>("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
-  const [typeFilter, setTypeFilter] = useState<string>("");
+  const [typeFilter, setTypeFilter] = useState<RecordType | "">("");
 
-  // 1. Debounce search changes by 400ms to reduce database fetch load
+  // 1. Debounce logic
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
+      setPage(1);
     }, 400);
 
     return () => {
@@ -32,12 +26,7 @@ export default function useDNSRecords(zoneId: number) {
     };
   }, [search]);
 
-  // 2. Reset page to 1 whenever search query or type filters change
-  useEffect(() => {
-    setPage(1);
-  }, [debouncedSearch, typeFilter]);
-
-  // 3. Encapsulate call to dnsRecordService
+  // 2. Encapsulate call to dnsRecordService
   const fetchDNSRecords = useCallback(async () => {
     if (!zoneId) return;
     setIsLoading(true);
@@ -46,17 +35,17 @@ export default function useDNSRecords(zoneId: number) {
       const data = await dnsRecordService.getDNSRecords(
         zoneId,
         debouncedSearch,
-        typeFilter,
+        typeFilter || undefined,
         page,
         limit
       );
       setRecords(data.items);
       setTotal(data.total);
       setPages(data.pages);
-    } catch (err: any) {
-      console.error(`Failed to load DNS records for zone ${zoneId}:`, err);
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { detail?: string } } };
       const message =
-        err.response?.data?.detail ||
+        axiosErr.response?.data?.detail ||
         "Failed to load DNS records from backend. Verify service connection.";
       setError(message);
     } finally {
@@ -64,10 +53,46 @@ export default function useDNSRecords(zoneId: number) {
     }
   }, [zoneId, debouncedSearch, typeFilter, page, limit]);
 
-  // 4. Run retrieval logic on mount or parameter modifications
+  // 3. Effect on mount or parameter changes
   useEffect(() => {
-    fetchDNSRecords();
-  }, [fetchDNSRecords]);
+    if (!zoneId) return;
+    let ignore = false;
+
+    (async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await dnsRecordService.getDNSRecords(
+          zoneId,
+          debouncedSearch,
+          typeFilter || undefined,
+          page,
+          limit
+        );
+        if (!ignore) {
+          setRecords(data.items);
+          setTotal(data.total);
+          setPages(data.pages);
+        }
+      } catch (err: unknown) {
+        if (!ignore) {
+          const axiosErr = err as { response?: { data?: { detail?: string } } };
+          const message =
+            axiosErr.response?.data?.detail ||
+            "Failed to load DNS records from backend. Verify service connection.";
+          setError(message);
+        }
+      } finally {
+        if (!ignore) {
+          setIsLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      ignore = true;
+    };
+  }, [zoneId, debouncedSearch, typeFilter, page, limit]);
 
   return {
     records,
@@ -80,7 +105,10 @@ export default function useDNSRecords(zoneId: number) {
     search,
     setSearch,
     typeFilter,
-    setTypeFilter,
+    setTypeFilter: (newFilter: RecordType | "") => {
+      setTypeFilter(newFilter);
+      setPage(1);
+    },
     setPage,
     refetch: fetchDNSRecords,
   };

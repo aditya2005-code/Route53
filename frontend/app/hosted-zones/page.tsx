@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import useHostedZones from "../../hooks/useHostedZones";
-import SearchBar from "../../components/hosted-zones/SearchBar";
+import { HostedZone } from "../../types/hostedZone";
 import HostedZonesTable from "../../components/hosted-zones/HostedZonesTable";
+import SearchBar from "../../components/hosted-zones/SearchBar";
 import Pagination from "../../components/hosted-zones/Pagination";
-import EmptyState from "../../components/hosted-zones/EmptyState";
-import LoadingSkeleton from "../../components/hosted-zones/LoadingSkeleton";
 import CreateHostedZoneModal from "../../components/hosted-zones/CreateHostedZoneModal";
 import EditHostedZoneModal from "../../components/hosted-zones/EditHostedZoneModal";
 import DeleteHostedZoneModal from "../../components/hosted-zones/DeleteHostedZoneModal";
-import { ShieldAlert, RefreshCw, Plus, Edit2, Trash2 } from "lucide-react";
-import { Button } from "../../components/ui/Button";
-import { Card } from "../../components/ui/Card";
-import { HostedZone } from "../../types/hostedZone";
+import EmptyState from "../../components/hosted-zones/EmptyState";
+import LoadingSkeleton from "../../components/hosted-zones/LoadingSkeleton";
+import Button from "../../components/ui/Button";
+import Card from "../../components/ui/Card";
+import { Plus, Edit2, Trash2, ShieldAlert } from "lucide-react";
 
 export default function HostedZonesPage() {
   const {
@@ -37,10 +37,8 @@ export default function HostedZonesPage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  // Clear selected row context whenever search queries or page indices modify
-  useEffect(() => {
-    setSelectedZone(null);
-  }, [search, page]);
+  // Derive currently valid selected zone based on query results
+  const effectiveSelectedZone = zones.find((z) => z.id === selectedZone?.id) || null;
 
   const handleCrudSuccess = () => {
     setSelectedZone(null);
@@ -60,27 +58,16 @@ export default function HostedZonesPage() {
           </p>
         </div>
 
-        {/* Action Controls using Button primitives */}
+        {/* Global Toolbar Action Buttons */}
         <div className="flex items-center gap-2">
-          {/* Refresh List */}
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => refetch()}
-            className="w-9 h-8 p-0"
-            title="Refresh list"
-          >
-            <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} />
-          </Button>
-
           {/* Delete Button (Active only when a row is selected) */}
           <Button
             variant="secondary"
             size="sm"
-            disabled={!selectedZone || isLoading}
+            disabled={!effectiveSelectedZone || isLoading}
             onClick={() => setIsDeleteOpen(true)}
             className="flex items-center gap-1 border-red-200 text-red-600 hover:bg-red-50/50 disabled:text-zinc-400 disabled:border-[#aab7b7] disabled:hover:bg-white"
-            title={selectedZone ? `Delete ${selectedZone.domain_name}` : "Select a hosted zone to delete"}
+            title={effectiveSelectedZone ? `Delete ${effectiveSelectedZone.domain_name}` : "Select a hosted zone to delete"}
           >
             <Trash2 size={12} />
             <span>Delete</span>
@@ -90,10 +77,10 @@ export default function HostedZonesPage() {
           <Button
             variant="secondary"
             size="sm"
-            disabled={!selectedZone || isLoading}
+            disabled={!effectiveSelectedZone || isLoading}
             onClick={() => setIsEditOpen(true)}
             className="flex items-center gap-1"
-            title={selectedZone ? `Edit ${selectedZone.domain_name}` : "Select a hosted zone to edit"}
+            title={effectiveSelectedZone ? `Edit ${effectiveSelectedZone.domain_name}` : "Select a hosted zone to edit"}
           >
             <Edit2 size={12} />
             <span>Edit</span>
@@ -146,13 +133,13 @@ export default function HostedZonesPage() {
           {/* Card Central Content Block */}
           {zones.length === 0 ? (
             <div className="p-8 text-center text-xs text-zinc-500 font-medium">
-              No matching hosted zones found for "{search}"
+              No matching hosted zones found for &quot;{search}&quot;
             </div>
           ) : (
             <>
               <HostedZonesTable
                 zones={zones}
-                selectedZoneId={selectedZone?.id ?? null}
+                selectedZoneId={effectiveSelectedZone?.id ?? null}
                 onSelectZone={setSelectedZone}
               />
               
@@ -180,14 +167,14 @@ export default function HostedZonesPage() {
         isOpen={isEditOpen}
         onClose={() => setIsEditOpen(false)}
         onSuccess={handleCrudSuccess}
-        zone={selectedZone}
+        zone={effectiveSelectedZone}
       />
 
       <DeleteHostedZoneModal
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
         onSuccess={handleCrudSuccess}
-        zone={selectedZone}
+        zone={effectiveSelectedZone}
       />
     </div>
   );

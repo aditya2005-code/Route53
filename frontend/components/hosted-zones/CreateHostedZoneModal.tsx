@@ -71,9 +71,10 @@ export default function CreateHostedZoneModal({
       showToast("Hosted Zone created successfully.", "success");
       onSuccess();
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { detail?: string } } };
       console.error("Create hosted zone failed:", err);
-      const msg = err.response?.data?.detail || "Failed to create hosted zone. Please try again.";
+      const msg = axiosErr.response?.data?.detail || "Failed to create hosted zone. Please try again.";
       showToast(msg, "error");
     }
   };

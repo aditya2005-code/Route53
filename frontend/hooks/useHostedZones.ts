@@ -2,12 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import hostedZoneService from "../services/hostedZone.service";
 import { HostedZone } from "../types/hostedZone";
 
-/**
- * Custom hook to manage fetching and querying Hosted Zones with:
- * - Backend pagination
- * - Debounced API searches
- * - State tracking (loading, errors, values)
- */
 export default function useHostedZones() {
   const [zones, setZones] = useState<HostedZone[]>([]);
   const [total, setTotal] = useState<number>(0);
@@ -19,10 +13,11 @@ export default function useHostedZones() {
   const [search, setSearch] = useState<string>("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
 
-  // 1. Debounce logic: Delay setting debouncedSearch until typing halts for 400ms
+  // 1. Debounce logic
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
+      setPage(1);
     }, 400);
 
     return () => {
@@ -30,12 +25,7 @@ export default function useHostedZones() {
     };
   }, [search]);
 
-  // 2. Reset page to 1 whenever search query updates
-  useEffect(() => {
-    setPage(1);
-  }, [debouncedSearch]);
-
-  // 3. Encapsulate call to hostedZoneService inside a useCallback hook
+  // 2. Fetcher
   const fetchHostedZones = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -44,10 +34,10 @@ export default function useHostedZones() {
       setZones(data.items);
       setTotal(data.total);
       setPages(data.pages);
-    } catch (err: any) {
-      console.error("Failed to load hosted zones:", err);
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { detail?: string } } };
       const message =
-        err.response?.data?.detail ||
+        axiosErr.response?.data?.detail ||
         "Failed to connect to the AWS Route 53 service. Verify the backend host is running.";
       setError(message);
     } finally {
@@ -55,10 +45,38 @@ export default function useHostedZones() {
     }
   }, [debouncedSearch, page, limit]);
 
-  // 4. Run retrieval logic on mount or parameter modifications
+  // 3. Effect on mount or parameter changes
   useEffect(() => {
-    fetchHostedZones();
-  }, [fetchHostedZones]);
+    let ignore = false;
+    (async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await hostedZoneService.getHostedZones(debouncedSearch, page, limit);
+        if (!ignore) {
+          setZones(data.items);
+          setTotal(data.total);
+          setPages(data.pages);
+        }
+      } catch (err: unknown) {
+        if (!ignore) {
+          const axiosErr = err as { response?: { data?: { detail?: string } } };
+          const message =
+            axiosErr.response?.data?.detail ||
+            "Failed to connect to the AWS Route 53 service. Verify the backend host is running.";
+          setError(message);
+        }
+      } finally {
+        if (!ignore) {
+          setIsLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      ignore = true;
+    };
+  }, [debouncedSearch, page, limit]);
 
   return {
     zones,

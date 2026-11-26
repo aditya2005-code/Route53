@@ -30,8 +30,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const profile = await authService.getCurrentUser();
           setUser(profile);
-        } catch (error) {
-          console.error("Failed to restore JWT session:", error);
+        } catch {
+          console.error("Failed to restore JWT session");
           removeToken();
           setUser(null);
         }
@@ -50,11 +50,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const profile = await authService.getCurrentUser();
       setUser(profile);
       
-      router.push("/hosted-zones");
-    } catch (error) {
+      router.push("/dashboard");
+    } catch (err) {
       removeToken();
       setUser(null);
-      throw error;
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -63,14 +63,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = (): void => {
     removeToken();
     setUser(null);
-    router.push("/login");
+    router.push("/auth/login");
   };
 
   const refreshUser = async (): Promise<void> => {
     try {
       const profile = await authService.getCurrentUser();
       setUser(profile);
-    } catch (error) {
+    } catch {
       logout();
     }
   };

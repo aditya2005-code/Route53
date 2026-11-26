@@ -15,7 +15,7 @@ import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
 import hostedZoneService from "../../../services/hostedZone.service";
 import { HostedZone } from "../../../types/hostedZone";
-import { DNSRecord } from "../../../types/dnsRecord";
+import { DNSRecord, RecordType } from "../../../types/dnsRecord";
 
 interface HostedZoneDetailClientProps {
   zoneId: number;
@@ -51,6 +51,9 @@ export default function HostedZoneDetailClient({ zoneId }: HostedZoneDetailClien
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
+  // Derive valid selected record based on current records in page
+  const effectiveSelectedRecord = records.find((r) => r.id === selectedRecord?.id) || null;
+
   // Fetch zone metadata on mount
   useEffect(() => {
     async function loadZone() {
@@ -59,9 +62,10 @@ export default function HostedZoneDetailClient({ zoneId }: HostedZoneDetailClien
         setZoneError(null);
         const data = await hostedZoneService.getHostedZone(zoneId);
         setZone(data);
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const axiosErr = err as { response?: { data?: { detail?: string } } };
         console.error("Failed to load hosted zone metadata:", err);
-        const msg = err.response?.data?.detail || "Hosted zone details could not be retrieved.";
+        const msg = axiosErr.response?.data?.detail || "Hosted zone details could not be retrieved.";
         setZoneError(msg);
       } finally {
         setZoneLoading(false);
@@ -69,11 +73,6 @@ export default function HostedZoneDetailClient({ zoneId }: HostedZoneDetailClien
     }
     loadZone();
   }, [zoneId]);
-
-  // Clear selected record row context on filters modification
-  useEffect(() => {
-    setSelectedRecord(null);
-  }, [search, typeFilter, page]);
 
   const handleCrudSuccess = () => {
     setSelectedRecord(null);
@@ -87,7 +86,7 @@ export default function HostedZoneDetailClient({ zoneId }: HostedZoneDetailClien
       const d = new Date(dateStr);
       const pad = (n: number) => String(n).padStart(2, "0");
       return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    } catch (e) {
+    } catch {
       return dateStr;
     }
   };
@@ -165,10 +164,10 @@ export default function HostedZoneDetailClient({ zoneId }: HostedZoneDetailClien
           <Button
             variant="secondary"
             size="sm"
-            disabled={!selectedRecord || isLoading}
+            disabled={!effectiveSelectedRecord || isLoading}
             onClick={() => setIsDeleteOpen(true)}
             className="flex items-center gap-1 border-red-200 text-red-600 hover:bg-red-50/50 disabled:text-zinc-400 disabled:border-[#aab7b7] disabled:hover:bg-white"
-            title={selectedRecord ? `Delete ${selectedRecord.record_name}` : "Select a record to delete"}
+            title={effectiveSelectedRecord ? `Delete ${effectiveSelectedRecord.record_name}` : "Select a record to delete"}
           >
             <Trash2 size={12} />
             <span>Delete record</span>
@@ -178,10 +177,10 @@ export default function HostedZoneDetailClient({ zoneId }: HostedZoneDetailClien
           <Button
             variant="secondary"
             size="sm"
-            disabled={!selectedRecord || isLoading}
+            disabled={!effectiveSelectedRecord || isLoading}
             onClick={() => setIsEditOpen(true)}
             className="flex items-center gap-1"
-            title={selectedRecord ? `Edit ${selectedRecord.record_name}` : "Select a record to edit"}
+            title={effectiveSelectedRecord ? `Edit ${effectiveSelectedRecord.record_name}` : "Select a record to edit"}
           >
             <Edit2 size={12} />
             <span>Edit record</span>
@@ -269,7 +268,7 @@ export default function HostedZoneDetailClient({ zoneId }: HostedZoneDetailClien
               {/* Record Type Dropdown Filter */}
               <select
                 value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
+                onChange={(e) => setTypeFilter(e.target.value as RecordType | "")}
                 className="h-9 rounded-[3px] border border-[#aab7c4] px-3 text-xs bg-white text-[#111111] outline-none focus:ring-1 focus:ring-[#e47911] focus:border-[#e47911] sm:w-48 cursor-pointer"
                 title="Filter by record type"
               >
@@ -301,7 +300,7 @@ export default function HostedZoneDetailClient({ zoneId }: HostedZoneDetailClien
             <>
               <DNSRecordsTable
                 records={records}
-                selectedRecordId={selectedRecord?.id ?? null}
+                selectedRecordId={effectiveSelectedRecord?.id ?? null}
                 onSelectRecord={setSelectedRecord}
               />
 
@@ -331,7 +330,7 @@ export default function HostedZoneDetailClient({ zoneId }: HostedZoneDetailClien
         onClose={() => setIsEditOpen(false)}
         onSuccess={handleCrudSuccess}
         zoneId={zoneId}
-        record={selectedRecord}
+        record={effectiveSelectedRecord}
       />
 
       <DeleteDNSRecordModal
@@ -339,7 +338,7 @@ export default function HostedZoneDetailClient({ zoneId }: HostedZoneDetailClien
         onClose={() => setIsDeleteOpen(false)}
         onSuccess={handleCrudSuccess}
         zoneId={zoneId}
-        record={selectedRecord}
+        record={effectiveSelectedRecord}
       />
     </div>
   );

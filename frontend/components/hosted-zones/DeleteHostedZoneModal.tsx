@@ -32,9 +32,10 @@ export default function DeleteHostedZoneModal({
       showToast("Hosted Zone deleted successfully.", "success");
       onSuccess();
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { detail?: string } } };
       console.error("Delete hosted zone failed:", err);
-      const msg = err.response?.data?.detail || "Failed to delete hosted zone. Please try again.";
+      const msg = axiosErr.response?.data?.detail || "Failed to delete hosted zone. Please try again.";
       showToast(msg, "error");
     } finally {
       setIsDeleting(false);
