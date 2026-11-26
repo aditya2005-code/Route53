@@ -7,7 +7,7 @@ from app.core.config import settings
 from app.db.database import Base, engine
 
 # Import all models BEFORE create_all()
-from app.models import user, hosted_zone, dns_record
+import app.models  # noqa: F401
 
 app = FastAPI(
     title="AWS Route 53 Clone API",
