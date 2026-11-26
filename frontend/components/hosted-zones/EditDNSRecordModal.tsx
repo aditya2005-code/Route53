@@ -35,10 +35,7 @@ const dnsSchema = z
       .int()
       .min(60, "TTL must be at least 60 seconds")
       .max(86400, "TTL cannot exceed 86400 seconds (24 hours)"),
-    priority: z.preprocess(
-      (val) => (val === "" || val === null || val === undefined || isNaN(Number(val)) ? undefined : Number(val)),
-      z.number().int().min(0, "Priority must be at least 0").max(65535, "Priority cannot exceed 65535").optional()
-    ),
+    priority: z.number().int().min(0, "Priority must be at least 0").max(65535, "Priority cannot exceed 65535").optional(),
   })
   .superRefine((data, ctx) => {
     // Priority check strictly for MX records
@@ -72,7 +69,7 @@ export default function EditDNSRecordModal({
     watch,
     formState: { errors, isSubmitting },
   } = useForm<EditFormValues>({
-    resolver: zodResolver(dnsSchema) as any,
+    resolver: zodResolver(dnsSchema),
   });
 
   // Watch the selected record type to toggle priority conditional inputs
@@ -108,9 +105,10 @@ export default function EditDNSRecordModal({
       showToast("DNS Record updated successfully.", "success");
       onSuccess();
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { detail?: string } } };
       console.error("Update DNS record failed:", err);
-      const msg = err.response?.data?.detail || "Failed to update DNS record. Please check inputs.";
+      const msg = axiosErr.response?.data?.detail || "Failed to update DNS record. Please check inputs.";
       showToast(msg, "error");
     }
   };
