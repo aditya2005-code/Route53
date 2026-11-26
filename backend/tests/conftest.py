@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+import app.models  # noqa: F401
 from app.main import app
 from app.db.database import Base
 from app.core.dependencies import get_db
@@ -11,13 +12,7 @@ from app.core.security import hash_password, create_access_token
 from app.models.user import User
 from app.models.hosted_zone import HostedZone
 from app.models.dns_record import DNSRecord
-from app.models.traffic_policy import TrafficPolicy
-from app.models.traffic_policy_version import TrafficPolicyVersion
-from app.models.traffic_policy_rule import TrafficPolicyRule
-from app.models.traffic_policy_instance import TrafficPolicyInstance
 
-# Use an in-memory SQLite database for testing.
-# StaticPool is used to prevent SQLite from closing the in-memory DB between connections.
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
 engine = create_engine(
@@ -29,17 +24,12 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 @pytest.fixture(scope="function")
 def db():
-    # Create the database tables
     Base.metadata.create_all(bind=engine)
-    connection = engine.connect()
-    transaction = connection.begin()
-    session = TestingSessionLocal(bind=connection)
+    session = TestingSessionLocal()
     
     yield session
     
     session.close()
-    transaction.rollback()
-    connection.close()
     Base.metadata.drop_all(bind=engine)
 
 @pytest.fixture(scope="function")
@@ -51,7 +41,8 @@ def client(db):
             pass
             
     app.dependency_overrides[get_db] = override_get_db
-    yield TestClient(app)
+    with TestClient(app) as test_client:
+        yield test_client
     app.dependency_overrides.clear()
 
 @pytest.fixture(scope="function")
