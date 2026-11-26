@@ -16,7 +16,7 @@
 
 <br/>
 
-[🌐 Live Deployment](https://route53-beryl.vercel.app) · [📖 Interactive API Docs](https://route53-backend-2vlc.onrender.com/docs) · [🐙 GitHub Repository](https://github.com/aditya2005-code/Route53)
+[🌐 Live Deployment](https://route53-beryl.vercel.app) · [📖 Interactive API Docs](https://route53-backend-2vlc.onrender.com/docs) · [🚀 Production Deployment Guide](DEPLOYMENT.md) · [🐙 GitHub Repository](https://github.com/aditya2005-code/Route53)
 
 </div>
 
@@ -306,6 +306,12 @@ Interactive OpenAPI documentation is accessible at `/docs` (Swagger UI) and `/re
 |---|---|---|:---:|
 | `POST` | `/ai/troubleshoot` | Submit DNS question for grounded AI analysis | **Yes** |
 | `POST` | `/troubleshoot` | Alias for AI troubleshooter endpoint | **Yes** |
+
+### Health & Readiness Endpoints
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|:---:|
+| `GET` | `/health` | Liveness probe: verifies API process is alive | No |
+| `GET` | `/health/ready` | Readiness probe: validates database connectivity & pool | No |
 
 ---
 
