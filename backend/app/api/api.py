@@ -1,32 +1,50 @@
 from fastapi import APIRouter
-from app.api.routes import hosted_zones, dns_records, auth
+from app.api.routes import hosted_zones, dns_records, auth, dashboard, troubleshoot
 from app.routers.traffic_policy import router as traffic_policy_router
 
 api_router = APIRouter()
 
-# Include the auth router
+# Authentication
 api_router.include_router(
     auth.router,
     prefix="/auth",
     tags=["Authentication"]
 )
 
-# Include the hosted zones router
+# Hosted Zones
 api_router.include_router(
     hosted_zones.router,
     prefix="/hosted-zones",
     tags=["Hosted Zones"]
 )
 
-# Include the DNS records router
-# Notice we don't use a prefix here because the endpoints in dns_records.py 
-# already specify their full paths (e.g., "/hosted-zones/{zone_id}/records").
+# DNS Records (paths like /hosted-zones/{zone_id}/records)
 api_router.include_router(
     dns_records.router,
     tags=["DNS Records"]
 )
 
-# Include the Traffic Policies router
+# Dashboard Summary
+api_router.include_router(
+    dashboard.router,
+    prefix="/dashboard",
+    tags=["Dashboard"]
+)
+
+# AI DNS Troubleshooter
+api_router.include_router(
+    troubleshoot.router,
+    prefix="/ai",
+    tags=["AI DNS Troubleshooter"]
+)
+
+# Convenience alias: /troubleshoot directly
+api_router.include_router(
+    troubleshoot.router,
+    tags=["AI DNS Troubleshooter"]
+)
+
+# Traffic Policies
 api_router.include_router(
     traffic_policy_router,
 )
